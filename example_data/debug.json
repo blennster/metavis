@@ -1,0 +1,33 @@
+[
+    {
+        "name": "Call",
+        "file": "Call.csv",
+        "locs": [0, 1, 2],
+        "locFile": "DEBUG_Loc.csv"
+    },
+    {
+        "name": "ExprPointsToArena",
+        "file": "ExprPointsToArena.csv",
+        "locs": [0],
+        "locFile": "DEBUG_Loc.csv"
+    },
+    {
+        "name": "FreeOfArenaPtr",
+        "file": "FreeOfArenaPtr.csv",
+        "locs": [0],
+        "locFile": "DEBUG_Loc.csv"
+    },
+    {
+        "name": "Return",
+        "file": "Return.csv",
+        "locs": [0, 1],
+        "locFile": "DEBUG_Loc.csv"
+    },
+    {
+        "name": "VarPointsToArena",
+        "file": "VarPointsToArena.csv",
+        "locs": [0],
+        "locFile": "DEBUG_Loc.csv"
+    }
+]
+
