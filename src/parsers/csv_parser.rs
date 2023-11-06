@@ -7,6 +7,7 @@ pub struct Loc {
     end_line: u32,
     end_col: u32,
 }
+
 impl FromStr for Loc {
     type Err = anyhow::Error;
 
@@ -46,6 +47,15 @@ impl FromStr for DebugLoc {
             source_file,
             loc,
         })
+    }
+}
+
+impl<'a> Into<ratatui::prelude::Text<'a>> for &DebugLoc {
+    fn into(self) -> ratatui::prelude::Text<'a> {
+        ratatui::prelude::Text::raw(format!(
+            "{}@{}:{}",
+            self.node_id, self.source_file, self.loc.start_line
+        ))
     }
 }
 
