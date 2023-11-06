@@ -1,74 +1,56 @@
-mod parser;
+mod parsers;
+mod ui;
 
-use crossterm::event::{self, KeyCode, KeyEventKind};
+use parsers::csv_parser;
 use ratatui::{
-    prelude::{Constraint, CrosstermBackend, Direction, Layout, Stylize, Terminal},
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
+    prelude::CrosstermBackend,
+    widgets::{ListItem, ListState},
+    Terminal,
 };
 use std::{
-    cell::Cell,
-    cmp,
-    io::{stdout, Result},
-    rc::Rc,
+    io::{self, stdout, BufRead, Result},
+    str::FromStr,
 };
 
+pub struct App<'a> {
+    contents: String,
+    nodes: Vec<ListItem<'a>>,
+    list_state: ListState,
+    should_quit: bool,
+    debug_loc: Vec<csv_parser::DebugLoc>,
+}
+
 fn main() -> Result<()> {
-    // Setup terminal
-    crossterm::terminal::enable_raw_mode()?;
-    crossterm::execute!(std::io::stderr(), crossterm::terminal::EnterAlternateScreen)?;
-    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-    terminal.clear()?;
     let mut list_state = ListState::default();
     list_state.select(Some(0));
+    let file = std::fs::File::open("./example_data/DEBUG_Loc.csv")?;
+    let reader = io::BufReader::new(file);
+    let mut debug_loc = Vec::new();
+    for line in reader.lines() {
+        debug_loc.push(csv_parser::DebugLoc::from_str(&line.unwrap()).unwrap());
+    }
+    let items = debug_loc.iter().map(|i| ListItem::new(i)).collect();
+    let contents = std::fs::read_to_string(format!("./example_data/{}", debug_loc[0].source_file))?;
 
+    let mut app_state = App {
+        contents,
+        nodes: items,
+        list_state,
+        should_quit: false,
+        debug_loc,
+    };
+
+    // Setup terminal
+    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
+    terminal.clear()?;
+    crossterm::terminal::enable_raw_mode()?;
+    crossterm::execute!(std::io::stderr(), crossterm::terminal::EnterAlternateScreen)?;
     // Main loop
     loop {
-        let items = vec![ListItem::new("Item 1"), ListItem::new("Item 2")];
-        let items_len = items.len();
+        ui::main_loop::render(&mut terminal, &mut app_state)?;
 
-        terminal.draw(|frame| {
-            let area = frame.size();
-            let outer_layout = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints(vec![Constraint::Percentage(90), Constraint::Percentage(10)])
-                .split(area);
-            let inner_layout = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints(vec![Constraint::Percentage(60), Constraint::Percentage(40)])
-                .split(outer_layout[0]);
-
-            frame.render_widget(Block::new().borders(Borders::ALL), inner_layout[0]);
-            frame.render_widget(Block::new().borders(Borders::ALL), inner_layout[1]);
-            frame.render_stateful_widget(
-                List::new(items)
-                    .block(Block::new().borders(Borders::ALL).title("List"))
-                    .highlight_symbol(">>"),
-                outer_layout[1],
-                &mut list_state,
-            )
-        })?;
-
-        if event::poll(std::time::Duration::from_millis(5000))? {
-            if let event::Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press {
-                    match key.code {
-                        KeyCode::Char('q') => {
-                            break;
-                        }
-                        KeyCode::Char('j') => {
-                            list_state.select(Some(cmp::min(
-                                items_len,
-                                list_state.selected().unwrap_or(0) + 1,
-                            )));
-                        }
-                        KeyCode::Char('k') => {
-                            list_state
-                                .select(Some(cmp::max(0, list_state.selected().unwrap_or(0) - 1)));
-                        }
-                        _ => {}
-                    }
-                }
-            }
+        if app_state.should_quit {
+            break;
         }
     }
 
