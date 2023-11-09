@@ -1,11 +1,12 @@
 use anyhow::{anyhow, Result};
 use std::str::FromStr;
 
+#[derive(Clone)]
 pub struct Loc {
-    start_line: u32,
-    start_col: u32,
-    end_line: u32,
-    end_col: u32,
+    pub start_line: usize,
+    pub start_col: usize,
+    pub end_line: usize,
+    pub end_col: usize,
 }
 
 impl FromStr for Loc {
@@ -27,6 +28,7 @@ impl FromStr for Loc {
     }
 }
 
+#[derive(Clone)]
 pub struct DebugLoc {
     pub node_id: u32,
     pub source_file: String,

@@ -8,6 +8,7 @@ authors = ["Emil Blennow"]
 
 [dependencies]
 anyhow = "1.0.75"
+coredump = "0.1.2"
 crossterm = "0.27.0"
 ratatui = { version = "0.24.0", features = ["all-widgets"] }
 serde = { version = "1.0.190", features = ["derive"] }
