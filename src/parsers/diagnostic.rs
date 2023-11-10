@@ -19,7 +19,7 @@ impl<'a> Into<ListItem<'a>> for &Diagnostic {
             self.name,
             self.nodes
                 .iter()
-                .map(std::string::ToString::to_string)
+                .map(|n| format!("{}", n)) // TODO: Show locs
                 .collect::<Vec<_>>()
                 .join(",")
         ))
