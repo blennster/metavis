@@ -4,8 +4,6 @@ mod parsers;
 mod source_view;
 mod ui;
 
-use parsers::loc_file::DebugLoc;
-
 use ratatui::{
     prelude::CrosstermBackend,
     widgets::{ListItem, ListState},
@@ -15,8 +13,6 @@ use std::{
     io::{self, stdout, BufRead, Result},
     str::FromStr,
 };
-
-type AppState<'a> = app_state::AppState<'a>;
 
 pub fn initialize_panic_handler() {
     let original_hook = std::panic::take_hook();
@@ -28,26 +24,19 @@ pub fn initialize_panic_handler() {
 }
 
 fn main() -> Result<()> {
-    let _ = coredump::register_panic_handler();
+    coredump::register_panic_handler().unwrap();
     initialize_panic_handler();
-    let mut list_state = ListState::default();
-    list_state.select(Some(0));
-    let file = std::fs::File::open("./example_data/DEBUG_Loc.csv")?;
-    let reader = io::BufReader::new(file);
-    let mut debug_locs = Vec::new();
-    for line in reader.lines() {
-        debug_locs.push(DebugLoc::from_str(&line.unwrap()).unwrap());
-    }
-    let items = debug_locs.iter().map(|i| ListItem::new(i)).collect();
-    let contents =
-        std::fs::read_to_string(format!("./example_data/{}", debug_locs[0].source_file))?;
 
-    let mut app_state = AppState {
-        source: contents,
-        nodes: items,
-        list_state,
+    let metainfo = parsers::MetaInfo::new("./example_data");
+    let diags = metainfo.get_diags_for_file("tests/clang/evaluation/src/arena/test1.c");
+
+    let mut app_state = app_state::AppState {
+        focus: app_state::AppFocus::DIAGNOSTICS,
+        source: diags[0].source.clone(),
+        diags,
+        diags_state: ListState::default().with_selected(Some(0)),
+        metainfo,
         should_quit: false,
-        debug_locs,
     };
 
     // Setup terminal

@@ -1,23 +1,21 @@
-use ratatui::widgets::{ListItem, ListState};
+use std::rc::Rc;
 
-use crate::parsers::loc_file::DebugLoc;
+use ratatui::widgets::ListState;
 
-pub struct AppState<'a> {
-    pub source: String,
-    pub nodes: Vec<ListItem<'a>>,
-    pub list_state: ListState,
+use crate::parsers::{Diagnostic, MetaInfo};
+
+#[derive(PartialEq)]
+pub enum AppFocus {
+    DIAGNOSTICS,
+}
+
+pub struct AppState {
+    pub source: Rc<str>,
+    pub metainfo: MetaInfo,
+    pub diags: Vec<Diagnostic>,
+    pub diags_state: ListState,
     pub should_quit: bool,
-    pub debug_locs: Vec<DebugLoc>,
+    pub focus: AppFocus,
 }
 
-impl<'a> AppState<'a> {
-    pub fn new() -> Self {
-        Self {
-            source: String::new(),
-            nodes: Vec::new(),
-            list_state: ListState::default(),
-            should_quit: false,
-            debug_locs: Vec::new(),
-        }
-    }
-}
+impl AppState {}

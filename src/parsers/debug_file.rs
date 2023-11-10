@@ -1,12 +1,13 @@
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 pub struct DebugJson {
-    name: String,
-    file: String,
-    locs: Vec<usize>,
+    pub name: String,
+    pub file: String,
+    #[serde(rename = "locs")]
+    pub fields_with_nodes: Vec<usize>,
     #[serde(rename = "locFile")]
-    loc_file: String,
+    pub loc_file: String,
 }
 
 #[cfg(test)]
@@ -29,7 +30,7 @@ mod tests {
 
         assert_eq!(debug_info[0].name, "Call");
         assert_eq!(debug_info[0].file, "Call.csv");
-        assert_eq!(debug_info[0].locs, vec![0, 1, 2]);
+        assert_eq!(debug_info[0].fields_with_nodes, vec![0, 1, 2]);
         assert_eq!(debug_info[0].loc_file, "DEBUG_Loc.csv");
     }
 }
