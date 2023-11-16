@@ -17,10 +17,11 @@ pub struct SourceView {
 impl SourceView {
     fn get_color(n: &usize) -> Style {
         match n {
-            0 => Style::default().bg(ratatui::style::Color::Green),
-            1 => Style::default().bg(ratatui::style::Color::Red),
-            2 => Style::default().bg(ratatui::style::Color::Blue),
-            _ => Style::default(),
+            0 => Style::default(),
+            1 => Style::default().bg(ratatui::style::Color::Green),
+            2 => Style::default().bg(ratatui::style::Color::Red),
+            3 => Style::default().bg(ratatui::style::Color::Blue),
+            _ => Style::default().bg(ratatui::style::Color::Yellow),
         }
     }
 
@@ -39,7 +40,7 @@ impl SourceView {
                 format!("{:>3} ", j), // TODO: Pad with a number related to the line number count
             );
             let mut content = vec![line_no];
-            let mut highlights_for_line = self
+            let highlights_for_line = self
                 .highlights
                 .iter()
                 .filter(|h| h.start_line == j)
@@ -51,76 +52,28 @@ impl SourceView {
                 continue;
             }
 
-            highlights_for_line.sort_by_key(|a| a.start_col);
-            highlights_for_line.reverse();
+            let mut acc = String::new();
 
-            let mut split_offset = 0;
-            let mut continuation = line;
-            while !highlights_for_line.is_empty() && continuation.len() > 0 {
-                let h1 = highlights_for_line.pop().unwrap();
-                let split_end = highlights_for_line
+            // TODO: Map highlight color to a node id (maybe)
+            let mut old_level = 0;
+            let mut level = 0;
+            for (k, c) in line.char_indices() {
+                let k = k + 1;
+                level = highlights_for_line
                     .iter()
-                    .map(|h2| h2.start_col)
-                    .find(|h2| *h2 < h1.end_col)
-                    .unwrap_or(h1.end_col);
+                    .filter(|h| h.start_col <= k && k <= h.end_col)
+                    .collect::<Vec<_>>()
+                    .len();
 
-                let color = match split_end == h1.end_col {
-                    true => Style::default().bg(ratatui::style::Color::Green),
-                    false => Style::default().bg(ratatui::style::Color::Red),
-                };
+                if level != old_level {
+                    content.push(Span::styled(acc, Self::get_color(&old_level)));
+                    acc = String::new();
+                    old_level = level;
+                }
 
-                let (a, b) = continuation.split_at((h1.start_col - 1) - split_offset);
-                let a = Span::raw(a.to_owned());
-                let b = {
-                    if h1.end_line == j {
-                        let offset = match split_end == h1.end_col {
-                            true => 0,
-                            false => 1,
-                        };
-                        let (b, c) = b.split_at((split_end - offset) - (h1.start_col - 1));
-                        let b = Span::styled(b.to_owned(), color);
-                        split_offset = split_end - 1;
-                        continuation = c.to_owned();
-                        b
-                    } else {
-                        let b = Span::styled(b.to_owned(), color);
-                        continuation = String::from("");
-                        b
-                    }
-                };
-                content.push(a);
-                content.push(b);
+                acc.push(c);
             }
-
-            if continuation.len() > 0 {
-                content.push(Span::styled(continuation, Style::default()));
-            }
-
-            // TODO: Render highlights within other highlights
-            // if j == h.start_line && h.start_line != h.end_line {
-            //     let (a, b) = line.split_at(h.start_col - 1);
-            //     let a = Span::raw(a.to_owned());
-            //     let b = Span::styled(b.to_owned(), Self::get_color(&curr));
-            //     content.append(&mut vec![a, b]);
-            // } else if j == h.start_line {
-            //     let (a, b) = line.split_at(h.start_col - 1);
-            //     let a = Span::raw(a.to_owned());
-            //     let (b, c) = b.split_at((h.end_col) - (h.start_col - 1));
-            //     let b = Span::styled(b.to_owned(), Self::get_color(&curr));
-            //     let c = Span::raw(c.to_owned());
-            //     content.append(&mut vec![a, b, c]);
-            //     curr = cmp::min(curr + 1, self.highlights.len() - 1);
-            //     h = self.highlights.get(curr).unwrap();
-            // } else if j == h.end_line {
-            //     let (a, b) = line.split_at(h.end_col - 1);
-            //     let a = Span::styled(a.to_owned(), Self::get_color(&curr));
-            //     let b = Span::raw(b.to_owned());
-            //     content.append(&mut vec![a, b]);
-            //     curr = cmp::min(curr + 1, self.highlights.len() - 1);
-            //     h = self.highlights.get(curr).unwrap();
-            // } else {
-            //     content.push(line.into());
-            // }
+            content.push(Span::styled(acc, Self::get_color(&level)));
 
             lines.push(Line::from(content));
         }

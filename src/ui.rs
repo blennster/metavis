@@ -14,13 +14,10 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
     let area = frame.size();
     let (left_pane, right_pane, bottom_pane) = get_layout(&area);
 
-    let mut highlights = match app_state.list.selected() {
+    let highlights = match app_state.list.selected() {
         Some(d) => d.locs.clone(),
         None => Vec::new(),
     };
-
-    // TODO: This should not be needed but will allow more highlights right now
-    highlights.sort_by(|a, b| a.start_line.cmp(&b.start_line));
 
     let source = SourceView {
         source: diag.source.to_string(),
