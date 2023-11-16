@@ -1,9 +1,10 @@
 use std::rc::Rc;
 
-use ratatui::widgets::ListItem;
+use ratatui::text::Text;
 
 use super::loc_file::Loc;
 
+#[derive(Clone)]
 pub struct Diagnostic {
     pub name: String,
     pub source_file: String,
@@ -12,9 +13,9 @@ pub struct Diagnostic {
     pub locs: Vec<Loc>,
 }
 
-impl<'a> Into<ListItem<'a>> for &Diagnostic {
-    fn into(self) -> ListItem<'a> {
-        ListItem::new(format!(
+impl<'a> Into<Text<'a>> for Diagnostic {
+    fn into(self) -> Text<'a> {
+        Text::from(format!(
             "{}: {}",
             self.name,
             self.nodes

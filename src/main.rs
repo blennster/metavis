@@ -1,4 +1,5 @@
 mod app_state;
+mod diagnostic_list;
 mod input;
 mod parsers;
 mod source_view;
@@ -29,14 +30,25 @@ fn main() -> Result<()> {
 
     let metainfo = parsers::MetaInfo::new("./example_data");
     let diags = metainfo.get_diags_for_file("tests/clang/evaluation/src/arena/test1.c");
+    let mut textarea = tui_textarea::TextArea::from(diags[0].source.to_owned().split('\n'));
+    textarea.set_line_number_style(ratatui::style::Style::default());
+    let mut l = vec![];
+    for d in &diags {
+        l.push(d.clone());
+    }
+    let diaglist = diagnostic_list::List::new(l);
 
     let mut app_state = app_state::AppState {
         focus: app_state::AppFocus::DIAGNOSTICS,
+        source_name: diags[0].source_file.clone().into(),
         source: diags[0].source.clone(),
+        textarea,
         diags,
         diags_state: ListState::default().with_selected(Some(0)),
         metainfo,
+        current_nodes: vec![],
         should_quit: false,
+        list: diaglist,
     };
 
     // Setup terminal

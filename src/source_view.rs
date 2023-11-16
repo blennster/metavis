@@ -24,6 +24,7 @@ impl SourceView {
         }
     }
 
+    // TODO: Highlight for a line can be seen as a tree or stack
     pub fn get_widget<'a>(self) -> Paragraph<'a> {
         let mut curr = 0;
         let h = self.highlights.get(curr);
@@ -37,9 +38,8 @@ impl SourceView {
         for (i, line) in source_lines.enumerate() {
             let line = line.to_owned();
             let j = i + 1;
-            let line_no = Span::styled(
-                format!("{:>2}  ", j), // TODO: Pad with a number related to the line number count
-                Style::default().add_modifier(Modifier::ITALIC),
+            let line_no = Span::from(
+                format!("{:>3} ", j), // TODO: Pad with a number related to the line number count
             );
             let mut content = vec![line_no];
 

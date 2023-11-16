@@ -18,3 +18,7 @@ Since this currently is a WIP these are the major limitations as of now:
 * `unwrap()` used heavily and therfore prone to crashes
 * No performance optimizations
 * Limited number of tests
+
+## Usage
+
+Navigate the source and list using vim keybindings or arrow keys. Switching active pane is done with `Tab`

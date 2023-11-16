@@ -183,6 +183,7 @@ dependencies = [
  "ratatui",
  "serde",
  "serde_json",
+ "tui-textarea",
 ]
 
 [[package]]
@@ -430,6 +431,17 @@ name = "time-core"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef927ca75afb808a4d64dd374f00a2adf8d0fcff8e7b184af886c3c87ec4a3f3"
+
+[[package]]
+name = "tui-textarea"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62fd31da310944e8ec72ee317a71748ae2c513258ebf9471f45e2892f428449f"
+dependencies = [
+ "crossterm",
+ "ratatui",
+ "unicode-width",
+]
 
 [[package]]
 name = "unicode-ident"
