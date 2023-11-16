@@ -9,6 +9,19 @@ pub struct Loc {
     pub end_col: usize,
 }
 
+impl Loc {
+    pub fn contains(&self, other: &Loc) -> bool {
+        self.start_line <= other.start_line
+            && self.end_line >= other.end_line
+            && self.start_col <= other.start_col
+            && self.end_col >= other.end_col
+    }
+
+    pub fn contained_by(&self, other: &Loc) -> bool {
+        !self.contains(other)
+    }
+}
+
 impl FromStr for Loc {
     type Err = anyhow::Error;
 
