@@ -43,17 +43,25 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         }
     }
 
-    let widget = app_state.list.widget().block(border.title("Diagnostics"));
+    let widget = app_state
+        .list
+        .widget()
+        .block(border.clone().title("Diagnostics"));
     frame.render_stateful_widget(widget, right_pane, &mut app_state.list.state);
+    let diags = app_state
+        .diags
+        .iter()
+        .filter(|d| d.nodes.iter().any(|n| app_state.current_nodes.contains(n)))
+        .collect::<Vec<_>>();
     frame.render_widget(
         Paragraph::new(
-            app_state
-                .current_nodes
+            diags
                 .iter()
-                .map(|i| i.to_string())
+                .map(|d| format!("{}", d.name,))
                 .collect::<Vec<_>>()
                 .join(", "),
-        ),
+        )
+        .block(border.title("Diagnostics")),
         bottom_pane,
     );
 }

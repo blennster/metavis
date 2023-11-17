@@ -1,6 +1,6 @@
 mod app_state;
-mod diagnostic_list;
 mod input;
+mod list;
 mod parsers;
 mod source_view;
 mod ui;
@@ -36,7 +36,7 @@ fn main() -> Result<()> {
     for d in &diags {
         l.push(d.clone());
     }
-    let diaglist = diagnostic_list::List::new(l);
+    let diaglist = list::List::new(l);
 
     let mut app_state = app_state::AppState {
         focus: app_state::AppFocus::DIAGNOSTICS,

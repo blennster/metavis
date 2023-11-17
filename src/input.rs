@@ -8,7 +8,6 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
         if key.kind != KeyEventKind::Press {
             return Ok(());
         }
-        let focus = &mut app_state.focus;
 
         match key.code {
             KeyCode::Char('q') => {
@@ -28,7 +27,7 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
                 move_left(app_state);
             }
             KeyCode::Tab => {
-                *focus = focus.next();
+                app_state.focus = app_state.focus.next();
             }
             _ => {}
         }

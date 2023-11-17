@@ -3,7 +3,7 @@ use std::rc::Rc;
 use ratatui::widgets::ListState;
 
 use crate::{
-    diagnostic_list::List,
+    list::List,
     parsers::{Diagnostic, MetaInfo},
 };
 
