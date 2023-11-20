@@ -2,13 +2,12 @@ use std::rc::Rc;
 
 use ratatui::text::Text;
 
-use super::loc_file::Loc;
+use super::{lib::SourceFile, loc_file::Loc};
 
 #[derive(Clone)]
 pub struct Diagnostic {
     pub name: String,
-    pub source_file: String,
-    pub source: Rc<str>,
+    pub source: Rc<SourceFile>,
     pub nodes: Vec<usize>,
     pub locs: Vec<Loc>,
 }

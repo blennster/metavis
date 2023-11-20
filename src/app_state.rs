@@ -4,7 +4,7 @@ use ratatui::widgets::ListState;
 
 use crate::{
     list::List,
-    parsers::{Diagnostic, MetaInfo},
+    parsers::{Diagnostic, MetaInfo, SourceFile},
 };
 
 #[derive(PartialEq)]
@@ -23,8 +23,7 @@ impl AppFocus {
 }
 
 pub struct AppState<'a> {
-    pub source_name: Rc<str>,
-    pub source: Rc<str>,
+    pub source: Rc<SourceFile>,
     pub metainfo: MetaInfo,
     pub diags: Vec<Diagnostic>,
     pub diags_state: ListState,
@@ -48,5 +47,22 @@ impl<'a> AppState<'a> {
             })
             .map(|d| d.node_id)
             .collect()
+    }
+
+    pub fn mark_nodes_under_cursor(&mut self) {
+        let (row, col) = self.textarea.cursor();
+        self.current_nodes = self.nodes_at(row, col);
+        self.list
+            .mark(|d| d.nodes.iter().any(|n| self.current_nodes.contains(n)));
+    }
+
+    pub fn get_current_diags(&self) -> Vec<&Diagnostic> {
+        let diags = self
+            .diags
+            .iter()
+            .filter(|d| d.nodes.iter().any(|n| self.current_nodes.contains(n)))
+            .collect::<Vec<_>>();
+
+        diags
     }
 }

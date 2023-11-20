@@ -1,6 +1,5 @@
 use ratatui::{
     prelude::{self, *},
-    style::Style,
     widgets::*,
     Frame,
 };
@@ -8,8 +7,7 @@ use ratatui::{
 use crate::{app_state, source_view::SourceView};
 
 pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
-    let diag_idx = app_state.diags_state.selected().unwrap_or(0);
-    let diag = &app_state.diags[diag_idx];
+    let diag = app_state.list.selected().unwrap();
 
     let area = frame.size();
     let (left_pane, right_pane, bottom_pane) = get_layout(&area);
@@ -19,8 +17,11 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         None => Vec::new(),
     };
 
+    let source_name = diag.source.name.clone();
+    let source_content = diag.source.content.clone();
+
     let source = SourceView {
-        source: diag.source.to_string(),
+        content: source_content,
         highlights,
     };
 
@@ -30,14 +31,14 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         app_state::AppFocus::SOURCE => {
             app_state
                 .textarea
-                .set_block(border.clone().title(diag.source_file.clone()));
+                .set_block(border.clone().title(source_name));
             let widget = app_state.textarea.widget();
             frame.render_widget(widget, left_pane);
         }
         app_state::AppFocus::DIAGNOSTICS => {
             let source_widget = source.get_widget();
             frame.render_widget(
-                source_widget.block(border.clone().title(diag.source_file.clone())),
+                source_widget.block(border.clone().title(source_name)),
                 left_pane,
             );
         }
@@ -48,11 +49,8 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         .widget()
         .block(border.clone().title("Diagnostics"));
     frame.render_stateful_widget(widget, right_pane, &mut app_state.list.state);
-    let diags = app_state
-        .diags
-        .iter()
-        .filter(|d| d.nodes.iter().any(|n| app_state.current_nodes.contains(n)))
-        .collect::<Vec<_>>();
+
+    let diags = app_state.get_current_diags();
     frame.render_widget(
         Paragraph::new(
             diags

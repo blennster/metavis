@@ -1,16 +1,12 @@
 use ratatui::{
-    prelude::Rect,
-    style::{Modifier, Style},
+    style::Style,
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
-    Frame,
+    widgets::Paragraph,
 };
-use std::cmp;
 
 use crate::parsers::Loc;
-
 pub struct SourceView {
-    pub source: String,
+    pub content: String,
     pub highlights: Vec<Loc>,
 }
 
@@ -25,12 +21,11 @@ impl SourceView {
         }
     }
 
-    // TODO: Highlight for a line can be seen as a tree or stack
     pub fn get_widget<'a>(self) -> Paragraph<'a> {
         if self.highlights.is_empty() {
-            return Paragraph::new(self.source);
+            return Paragraph::new(self.content);
         }
-        let source_lines = self.source.split("\n");
+        let source_lines = self.content.split("\n");
         let mut lines = Vec::new();
 
         for (i, line) in source_lines.enumerate() {

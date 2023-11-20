@@ -1,12 +1,13 @@
 use std::{collections::HashMap, io::BufRead, rc::Rc, str::FromStr};
 
 use super::{
-    csv_file::RawDiagnostic, debug_file::DebugJson, diagnostic::Diagnostic, loc_file::DebugLoc,
+    csv_file::RawDiagnostic, debug_file::DebugJson, diagnostic::Diagnostic, lib::SourceFile,
+    loc_file::DebugLoc,
 };
 
 #[derive(Debug)]
 pub struct MetaInfo {
-    pub source_files: HashMap<String, Rc<str>>,
+    pub source_files: HashMap<String, Rc<SourceFile>>,
     pub debug_json: Vec<DebugJson>,
     pub diagnostics: Vec<RawDiagnostic>,
     pub debug_locs: Vec<DebugLoc>,
@@ -17,7 +18,7 @@ impl MetaInfo {
         let json = std::fs::read_to_string("./example_data/debug.json").unwrap();
         let debug_json = serde_json::from_str::<Vec<DebugJson>>(&json).unwrap();
         let mut diagnostics = vec![];
-        let mut source_files: HashMap<String, Rc<str>> = HashMap::new();
+        let mut source_files: HashMap<String, Rc<SourceFile>> = HashMap::new();
         let mut debug_loc_files: Vec<&str> = vec![];
         let mut debug_locs: Vec<DebugLoc> = vec![];
 
@@ -41,14 +42,23 @@ impl MetaInfo {
             let reader = std::io::BufReader::new(file);
             for line in reader.lines() {
                 let loc = DebugLoc::from_str(&line.unwrap()).unwrap();
-                source_files.insert(loc.source_file.clone(), Rc::from(""));
+
+                if !source_files.contains_key(&loc.source_file) {
+                    let source_file = SourceFile::new_from_path(
+                        &loc.source_file,
+                        format!("{}/{}", root, loc.source_file).as_str(),
+                    )
+                    .unwrap();
+                    source_files.insert(loc.source_file.clone(), Rc::from(source_file));
+                }
+
                 debug_locs.push(loc);
             }
         }
 
-        source_files.iter_mut().for_each(|(k, v)| {
-            *v = Rc::from(std::fs::read_to_string(format!("{}/{}", root, k)).unwrap())
-        });
+        // source_files.iter_mut().for_each(|(k, v)| {
+        //     *v = Rc::from(std::fs::read_to_string(format!("{}/{}", root, k)).unwrap())
+        // });
 
         Self {
             source_files,
@@ -73,7 +83,6 @@ impl MetaInfo {
         for d in raw_diags {
             let d = Diagnostic {
                 name: d.name.clone(),
-                source_file: file.to_string(),
                 source: self.source_files[file].clone(),
                 nodes: d.nodes.clone(),
                 locs: nodes

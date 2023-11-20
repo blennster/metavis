@@ -24,13 +24,10 @@ pub fn initialize_panic_handler() {
     }));
 }
 
-fn main() -> Result<()> {
-    coredump::register_panic_handler().unwrap();
-    initialize_panic_handler();
-
-    let metainfo = parsers::MetaInfo::new("./example_data");
+fn make_app_state<'a>(source_dir: &str) -> anyhow::Result<app_state::AppState<'a>> {
+    let metainfo = parsers::MetaInfo::new(source_dir);
     let diags = metainfo.get_diags_for_file("tests/clang/evaluation/src/arena/test1.c");
-    let mut textarea = tui_textarea::TextArea::from(diags[0].source.to_owned().split('\n'));
+    let mut textarea = tui_textarea::TextArea::from(diags[0].source.content.to_owned().split('\n'));
     textarea.set_line_number_style(ratatui::style::Style::default());
     let mut l = vec![];
     for d in &diags {
@@ -38,9 +35,8 @@ fn main() -> Result<()> {
     }
     let diaglist = list::List::new(l);
 
-    let mut app_state = app_state::AppState {
+    let app_state = app_state::AppState {
         focus: app_state::AppFocus::DIAGNOSTICS,
-        source_name: diags[0].source_file.clone().into(),
         source: diags[0].source.clone(),
         textarea,
         diags,
@@ -50,6 +46,22 @@ fn main() -> Result<()> {
         should_quit: false,
         list: diaglist,
     };
+
+    Ok(app_state)
+}
+
+fn main() -> anyhow::Result<()> {
+    coredump::register_panic_handler().unwrap();
+    initialize_panic_handler();
+
+    // Initalize app_state before chaning the terminal
+    let mut app_state = make_app_state("./example_data")?;
+
+    crossterm::execute!(std::io::stderr(), crossterm::terminal::EnterAlternateScreen)?;
+    crossterm::execute!(
+        stdout(),
+        crossterm::terminal::Clear(crossterm::terminal::ClearType::All)
+    )?;
 
     // Setup terminal
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
