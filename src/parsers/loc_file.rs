@@ -65,11 +65,11 @@ impl FromStr for DebugLoc {
     }
 }
 
-impl<'a> Into<ratatui::prelude::Text<'a>> for &DebugLoc {
-    fn into(self) -> ratatui::prelude::Text<'a> {
+impl<'a> From<&DebugLoc> for ratatui::prelude::Text<'a> {
+    fn from(value: &DebugLoc) -> Self {
         ratatui::prelude::Text::raw(format!(
             "{}@{}:{}",
-            self.node_id, self.source_file, self.loc.start_line
+            value.node_id, value.source_file, value.loc.start_line
         ))
     }
 }

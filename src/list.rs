@@ -81,12 +81,7 @@ where
                 .patch_style(ratatui::style::Style::default().bg(ratatui::style::Color::Green));
         }
 
-        ratatui::widgets::List::new(
-            items
-                .into_iter()
-                .map(|i| ListItem::new(i))
-                .collect::<Vec<_>>(),
-        )
-        .highlight_symbol(">>")
+        ratatui::widgets::List::new(items.into_iter().map(ListItem::new).collect::<Vec<_>>())
+            .highlight_symbol(">>")
     }
 }

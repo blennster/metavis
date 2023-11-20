@@ -31,7 +31,7 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
             _ => {}
         }
 
-        if app_state.focus == AppFocus::SOURCE {
+        if app_state.focus == AppFocus::Source {
             app_state.mark_nodes_under_cursor();
         }
     }
@@ -41,8 +41,8 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
 
 fn move_left(app_state: &mut crate::app_state::AppState) {
     match app_state.focus {
-        AppFocus::DIAGNOSTICS => {}
-        AppFocus::SOURCE => {
+        AppFocus::Diagnostics => {}
+        AppFocus::Source => {
             app_state
                 .textarea
                 .move_cursor(tui_textarea::CursorMove::Back);
@@ -52,8 +52,8 @@ fn move_left(app_state: &mut crate::app_state::AppState) {
 
 fn move_right(app_state: &mut crate::app_state::AppState) {
     match app_state.focus {
-        AppFocus::DIAGNOSTICS => {}
-        AppFocus::SOURCE => {
+        AppFocus::Diagnostics => {}
+        AppFocus::Source => {
             app_state
                 .textarea
                 .move_cursor(tui_textarea::CursorMove::Forward);
@@ -63,10 +63,10 @@ fn move_right(app_state: &mut crate::app_state::AppState) {
 
 fn move_up(app_state: &mut crate::app_state::AppState) {
     match app_state.focus {
-        AppFocus::DIAGNOSTICS => {
+        AppFocus::Diagnostics => {
             app_state.list.up();
         }
-        AppFocus::SOURCE => {
+        AppFocus::Source => {
             app_state.textarea.move_cursor(tui_textarea::CursorMove::Up);
         }
     }
@@ -74,10 +74,10 @@ fn move_up(app_state: &mut crate::app_state::AppState) {
 
 fn move_down(app_state: &mut crate::app_state::AppState) {
     match app_state.focus {
-        AppFocus::DIAGNOSTICS => {
+        AppFocus::Diagnostics => {
             app_state.list.down();
         }
-        AppFocus::SOURCE => app_state
+        AppFocus::Source => app_state
             .textarea
             .move_cursor(tui_textarea::CursorMove::Down),
     }

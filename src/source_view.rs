@@ -25,7 +25,7 @@ impl SourceView {
         if self.highlights.is_empty() {
             return Paragraph::new(self.content);
         }
-        let source_lines = self.content.split("\n");
+        let source_lines = self.content.split('\n');
         let mut lines = Vec::new();
 
         for (i, line) in source_lines.enumerate() {

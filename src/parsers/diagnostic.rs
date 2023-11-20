@@ -12,12 +12,12 @@ pub struct Diagnostic {
     pub locs: Vec<Loc>,
 }
 
-impl<'a> Into<Text<'a>> for Diagnostic {
-    fn into(self) -> Text<'a> {
+impl<'a> From<Diagnostic> for Text<'a> {
+    fn from(val: Diagnostic) -> Self {
         Text::from(format!(
             "{}: {}",
-            self.name,
-            self.nodes
+            val.name,
+            val.nodes
                 .iter()
                 .map(|n| format!("{}", n)) // TODO: Show locs
                 .collect::<Vec<_>>()

@@ -9,15 +9,15 @@ use crate::{
 
 #[derive(PartialEq)]
 pub enum AppFocus {
-    DIAGNOSTICS,
-    SOURCE,
+    Diagnostics,
+    Source,
 }
 
 impl AppFocus {
     pub fn next(&self) -> AppFocus {
         match self {
-            AppFocus::DIAGNOSTICS => AppFocus::SOURCE,
-            AppFocus::SOURCE => AppFocus::DIAGNOSTICS,
+            AppFocus::Diagnostics => AppFocus::Source,
+            AppFocus::Source => AppFocus::Diagnostics,
         }
     }
 }
@@ -36,14 +36,18 @@ pub struct AppState<'a> {
 
 impl<'a> AppState<'a> {
     pub fn nodes_at(&self, row: usize, col: usize) -> Vec<usize> {
+        // Adjust for indexing
+        let row = row + 1;
+        let col = col + 1;
+
         self.metainfo
             .debug_locs
             .iter()
             .filter(|d| {
-                d.loc.start_line <= row + 1
-                    && d.loc.start_col <= col + 1
-                    && d.loc.end_col >= col + 1
-                    && d.loc.end_line >= row + 1
+                d.loc.start_line <= row
+                    && d.loc.start_col <= col
+                    && d.loc.end_col >= col
+                    && d.loc.end_line >= row
             })
             .map(|d| d.node_id)
             .collect()

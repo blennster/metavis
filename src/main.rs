@@ -5,15 +5,8 @@ mod parsers;
 mod source_view;
 mod ui;
 
-use ratatui::{
-    prelude::CrosstermBackend,
-    widgets::{ListItem, ListState},
-    Terminal,
-};
-use std::{
-    io::{self, stdout, BufRead, Result},
-    str::FromStr,
-};
+use ratatui::{prelude::CrosstermBackend, widgets::ListState, Terminal};
+use std::io::stdout;
 
 pub fn initialize_panic_handler() {
     let original_hook = std::panic::take_hook();
@@ -36,7 +29,7 @@ fn make_app_state<'a>(source_dir: &str) -> anyhow::Result<app_state::AppState<'a
     let diaglist = list::List::new(l);
 
     let app_state = app_state::AppState {
-        focus: app_state::AppFocus::DIAGNOSTICS,
+        focus: app_state::AppFocus::Diagnostics,
         source: diags[0].source.clone(),
         textarea,
         diags,

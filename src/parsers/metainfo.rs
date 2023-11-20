@@ -106,9 +106,9 @@ mod tests {
     #[test]
     fn test_parse_meta_info() {
         let meta_info = MetaInfo::new("./example_data");
-        assert!(meta_info.source_files.len() > 0);
-        assert!(meta_info.debug_json.len() > 0);
-        assert!(meta_info.diagnostics.len() > 0);
+        assert!(!meta_info.source_files.is_empty());
+        assert!(!meta_info.debug_json.is_empty());
+        assert!(!meta_info.diagnostics.is_empty());
         dbg!(meta_info.source_files);
     }
 }

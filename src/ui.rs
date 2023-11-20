@@ -28,14 +28,14 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
     let border = Block::new().borders(Borders::ALL);
 
     match app_state.focus {
-        app_state::AppFocus::SOURCE => {
+        app_state::AppFocus::Source => {
             app_state
                 .textarea
                 .set_block(border.clone().title(source_name));
             let widget = app_state.textarea.widget();
             frame.render_widget(widget, left_pane);
         }
-        app_state::AppFocus::DIAGNOSTICS => {
+        app_state::AppFocus::Diagnostics => {
             let source_widget = source.get_widget();
             frame.render_widget(
                 source_widget.block(border.clone().title(source_name)),
@@ -55,7 +55,7 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         Paragraph::new(
             diags
                 .iter()
-                .map(|d| format!("{}", d.name,))
+                .map(|d| d.name.to_string())
                 .collect::<Vec<_>>()
                 .join(", "),
         )
