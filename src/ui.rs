@@ -55,7 +55,17 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         Paragraph::new(
             diags
                 .iter()
-                .map(|d| d.name.to_string())
+                .map(|d| {
+                    format!(
+                        "{}: ({})",
+                        d.name,
+                        d.nodes
+                            .iter()
+                            .map(|n| n.to_string())
+                            .collect::<Vec<_>>()
+                            .join(",")
+                    )
+                })
                 .collect::<Vec<_>>()
                 .join(", "),
         )
