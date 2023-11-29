@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use std::str::FromStr;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Loc {
     pub start_line: usize,
     pub start_col: usize,

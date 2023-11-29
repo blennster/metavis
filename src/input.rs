@@ -13,72 +13,92 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
                 app_state.should_quit = true;
                 return Ok(());
             }
-            KeyCode::Char('j') | KeyCode::Down => {
-                move_down(app_state);
-            }
-            KeyCode::Char('k') | KeyCode::Up => {
-                move_up(app_state);
-            }
-            KeyCode::Char('l') | KeyCode::Right => {
-                move_right(app_state);
-            }
-            KeyCode::Char('h') | KeyCode::Left => {
-                move_left(app_state);
-            }
             KeyCode::Tab => {
                 app_state.focus = app_state.focus.next();
+                return Ok(());
+            }
+            KeyCode::Char('f') => {
+                app_state.focus = AppFocus::FilePicker;
+            }
+            KeyCode::Esc => {
+                if app_state.focus == AppFocus::FilePicker {
+                    app_state.focus = AppFocus::Diagnostics;
+                }
             }
             _ => {}
-        }
+        };
 
         if app_state.focus == AppFocus::Source {
+            handle_source_inputs(key, app_state);
             app_state.mark_nodes_under_cursor();
+        } else if app_state.focus == AppFocus::Diagnostics {
+            handle_diagnostic_inputs(key, app_state);
+            let current = &app_state.diagnostics.selected().unwrap().current().unwrap();
+            app_state.sv.cursor = (
+                (current.start_col - 1) as u16,
+                (current.start_line - 1) as u16,
+            );
+        } else if app_state.focus == AppFocus::FilePicker {
+            handle_file_picker_inputs(key, app_state);
         }
     }
 
     Ok(())
 }
 
-fn move_left(app_state: &mut crate::app_state::AppState) {
-    match app_state.focus {
-        AppFocus::Diagnostics => {}
-        AppFocus::Source => {
+fn handle_file_picker_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
+    match key.code {
+        KeyCode::Char('j') | KeyCode::Down => app_state.files.down(),
+        KeyCode::Char('k') | KeyCode::Up => app_state.files.up(),
+        KeyCode::Enter => {
+            let file = app_state.files.selected().unwrap().clone();
+            app_state.load_file(&file);
+            app_state.focus = AppFocus::Diagnostics;
+        }
+        _ => {}
+    }
+}
+
+fn handle_source_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
+    match key.code {
+        KeyCode::Char('j') | KeyCode::Down => {
             app_state
-                .textarea
-                .move_cursor(tui_textarea::CursorMove::Back);
+                .sv
+                .move_cursor(crate::source_view::Direction::Down);
         }
-    }
-}
-
-fn move_right(app_state: &mut crate::app_state::AppState) {
-    match app_state.focus {
-        AppFocus::Diagnostics => {}
-        AppFocus::Source => {
+        KeyCode::Char('k') | KeyCode::Up => {
+            app_state.sv.move_cursor(crate::source_view::Direction::Up);
+        }
+        KeyCode::Char('l') | KeyCode::Right => {
             app_state
-                .textarea
-                .move_cursor(tui_textarea::CursorMove::Forward);
+                .sv
+                .move_cursor(crate::source_view::Direction::Right);
         }
+        KeyCode::Char('h') | KeyCode::Left => {
+            app_state
+                .sv
+                .move_cursor(crate::source_view::Direction::Left);
+        }
+        _ => {}
     }
 }
 
-fn move_up(app_state: &mut crate::app_state::AppState) {
-    match app_state.focus {
-        AppFocus::Diagnostics => {
-            app_state.list.up();
+fn handle_diagnostic_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
+    match key.code {
+        KeyCode::Char('j') | KeyCode::Down => {
+            app_state.diagnostics.selected().unwrap().unset();
+            app_state.diagnostics.down();
         }
-        AppFocus::Source => {
-            app_state.textarea.move_cursor(tui_textarea::CursorMove::Up);
+        KeyCode::Char('k') | KeyCode::Up => {
+            app_state.diagnostics.selected().unwrap().unset();
+            app_state.diagnostics.up();
         }
-    }
-}
-
-fn move_down(app_state: &mut crate::app_state::AppState) {
-    match app_state.focus {
-        AppFocus::Diagnostics => {
-            app_state.list.down();
+        KeyCode::Char('l') | KeyCode::Right => {
+            app_state.diagnostics.selected().unwrap().next();
         }
-        AppFocus::Source => app_state
-            .textarea
-            .move_cursor(tui_textarea::CursorMove::Down),
+        KeyCode::Char('h') | KeyCode::Left => {
+            app_state.diagnostics.selected().unwrap().prev();
+        }
+        _ => {}
     }
 }

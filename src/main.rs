@@ -1,11 +1,13 @@
 mod app_state;
+mod file_picker;
 mod input;
 mod list;
 mod parsers;
 mod source_view;
 mod ui;
 
-use ratatui::{prelude::CrosstermBackend, widgets::ListState, Terminal};
+use ratatui::{prelude::CrosstermBackend, Terminal};
+use source_view::SourceView;
 use std::io::stdout;
 
 pub fn initialize_panic_handler() {
@@ -17,28 +19,23 @@ pub fn initialize_panic_handler() {
     }));
 }
 
-fn make_app_state<'a>(source_dir: &str) -> anyhow::Result<app_state::AppState<'a>> {
+fn make_app_state<'a>(source_dir: &str) -> anyhow::Result<app_state::AppState> {
     let metainfo = parsers::MetaInfo::new(source_dir);
-    let diags = metainfo.get_diags_for_file("tests/clang/evaluation/src/arena/test1.c");
-    let mut textarea = tui_textarea::TextArea::from(diags[0].source.content.to_owned().split('\n'));
-    textarea.set_line_number_style(ratatui::style::Style::default());
-    let mut l = vec![];
-    for d in &diags {
-        l.push(d.clone());
-    }
-    let diaglist = list::List::new(l);
 
-    let app_state = app_state::AppState {
-        focus: app_state::AppFocus::Diagnostics,
-        source: diags[0].source.clone(),
-        textarea,
-        diags,
-        diags_state: ListState::default().with_selected(Some(0)),
-        metainfo,
-        current_nodes: vec![],
-        should_quit: false,
-        list: diaglist,
-    };
+    let files = metainfo.source_files.keys().cloned().collect();
+    let files = list::List::new(files);
+
+    let app_state = app_state::AppState::new(metainfo, files);
+    // let app_state = app_state::AppState {
+    //     focus: app_state::AppFocus::Diagnostics,
+    //     source: diags[0].source.clone(),
+    //     metainfo,
+    //     sv,
+    //     current_nodes: vec![],
+    //     should_quit: false,
+    //     diagnostics: diaglist,
+    //     files: list::List::new(vec![]),
+    // };
 
     Ok(app_state)
 }
@@ -47,8 +44,19 @@ fn main() -> anyhow::Result<()> {
     coredump::register_panic_handler().unwrap();
     initialize_panic_handler();
 
+    let mut args = std::env::args();
+    args.next();
+    let root = match args.next() {
+        Some(root) => root,
+        None => {
+            #[cfg(not(debug_assertions))]
+            panic!("Please specify the root directory of the project");
+            "./example_data".to_string()
+        }
+    };
+
     // Initalize app_state before chaning the terminal
-    let mut app_state = make_app_state("./example_data")?;
+    let mut app_state = make_app_state(&root)?;
 
     crossterm::execute!(std::io::stderr(), crossterm::terminal::EnterAlternateScreen)?;
     crossterm::execute!(

@@ -45,8 +45,8 @@ impl<T> List<T> {
             .collect();
     }
 
-    pub fn selected(&self) -> Option<&T> {
-        self.items.get(self.state.selected().unwrap_or(0))
+    pub fn selected(&mut self) -> Option<&mut T> {
+        self.items.get_mut(self.state.selected().unwrap_or(0))
     }
 }
 
@@ -81,7 +81,7 @@ where
                 .patch_style(ratatui::style::Style::default().bg(ratatui::style::Color::Green));
         }
 
-        ratatui::widgets::List::new(items.into_iter().map(ListItem::new).collect::<Vec<_>>())
-            .highlight_symbol(">>")
+        let list_items = items.into_iter().map(ListItem::new).collect::<Vec<_>>();
+        ratatui::widgets::List::new(list_items).highlight_symbol(">>")
     }
 }

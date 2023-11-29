@@ -15,7 +15,7 @@ pub struct MetaInfo {
 
 impl MetaInfo {
     pub fn new(root: &str) -> Self {
-        let json = std::fs::read_to_string("./example_data/debug.json").unwrap();
+        let json = std::fs::read_to_string(format!("{}/debug.json", root)).unwrap();
         let debug_json = serde_json::from_str::<Vec<DebugJson>>(&json).unwrap();
         let mut diagnostics = vec![];
         let mut source_files: HashMap<String, Rc<SourceFile>> = HashMap::new();
@@ -47,9 +47,10 @@ impl MetaInfo {
                     let source_file = SourceFile::new_from_path(
                         &loc.source_file,
                         format!("{}/{}", root, loc.source_file).as_str(),
-                    )
-                    .unwrap();
-                    source_files.insert(loc.source_file.clone(), Rc::from(source_file));
+                    );
+                    if let Ok(source_file) = source_file {
+                        source_files.insert(loc.source_file.clone(), Rc::from(source_file));
+                    }
                 }
 
                 debug_locs.push(loc);
@@ -69,7 +70,7 @@ impl MetaInfo {
     }
 
     pub fn get_diags_for_file(&self, file: &str) -> Vec<Diagnostic> {
-        let nodes: Vec<_> = self
+        let debug_locs: Vec<_> = self
             .debug_locs
             .iter()
             .filter(|d| d.source_file == file)
@@ -77,19 +78,25 @@ impl MetaInfo {
         let raw_diags = self
             .diagnostics
             .iter()
-            .filter(|d| nodes.iter().any(|n| d.nodes.contains(&n.node_id)));
+            .filter(|d| debug_locs.iter().any(|n| d.nodes.contains(&n.node_id)));
 
         let mut diags = vec![];
         for d in raw_diags {
+            let locs = d
+                .nodes
+                .iter()
+                .map(|n| match debug_locs.iter().find(|l| l.node_id == *n) {
+                    Some(l) => l.loc.clone(),
+                    None => super::loc_file::Loc::default(),
+                })
+                .collect();
+
             let d = Diagnostic {
                 name: d.name.clone(),
                 source: self.source_files[file].clone(),
                 nodes: d.nodes.clone(),
-                locs: nodes
-                    .iter()
-                    .filter(|n| d.nodes.contains(&n.node_id))
-                    .map(|n| n.loc.clone())
-                    .collect(),
+                locs,
+                current_loc: None,
             };
 
             diags.push(d);
