@@ -22,7 +22,8 @@ pub fn initialize_panic_handler() {
 fn make_app_state<'a>(source_dir: &str) -> anyhow::Result<app_state::AppState> {
     let metainfo = parsers::MetaInfo::new(source_dir);
 
-    let files = metainfo.source_files.keys().cloned().collect();
+    let mut files = metainfo.source_files.keys().cloned().collect::<Vec<_>>();
+    files.sort();
     let files = list::List::new(files);
 
     let app_state = app_state::AppState::new(metainfo, files);
