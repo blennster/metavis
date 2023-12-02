@@ -7,7 +7,6 @@ mod source_view;
 mod ui;
 
 use ratatui::{prelude::CrosstermBackend, Terminal};
-use source_view::SourceView;
 use std::io::stdout;
 
 pub fn initialize_panic_handler() {
@@ -27,16 +26,6 @@ fn make_app_state<'a>(source_dir: &str) -> anyhow::Result<app_state::AppState> {
     let files = list::List::new(files);
 
     let app_state = app_state::AppState::new(metainfo, files);
-    // let app_state = app_state::AppState {
-    //     focus: app_state::AppFocus::Diagnostics,
-    //     source: diags[0].source.clone(),
-    //     metainfo,
-    //     sv,
-    //     current_nodes: vec![],
-    //     should_quit: false,
-    //     diagnostics: diaglist,
-    //     files: list::List::new(vec![]),
-    // };
 
     Ok(app_state)
 }
@@ -50,6 +39,7 @@ fn main() -> anyhow::Result<()> {
     let root = match args.next() {
         Some(root) => root,
         None => {
+            // Panic if not in debug, otherwise fallback to example_data
             #[cfg(not(debug_assertions))]
             panic!("Please specify the root directory of the project");
             "./example_data".to_string()

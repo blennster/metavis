@@ -9,9 +9,9 @@ pub struct SourceView {
     pub name: String,
     pub content: String,
     pub highlights: Vec<Loc>,
-    // Note: This is (y, x) and not (x, y)
+    /// Note: This is (y, x) and not (x, y)
     pub scroll: (u16, u16),
-    // (x, y)
+    /// (x, y)
     pub cursor: (u16, u16),
     line_padding: usize,
 }
@@ -137,10 +137,22 @@ impl SourceView {
         } else if self.cursor.1 <= self.scroll.0 {
             self.scroll.0 = self.cursor.1;
         }
+
+        let padding = self.line_padding + 1;
+        let cols_in_view = container.width - 2 - padding as u16;
+        if self.cursor.0 >= self.scroll.1 + cols_in_view {
+            self.scroll.1 = self.cursor.0 - cols_in_view + 1;
+        } else if self.cursor.0 <= self.scroll.1 {
+            self.scroll.1 = self.cursor.0;
+        }
     }
 
     pub fn global_cursor(&self, container: &ratatui::prelude::Rect) -> (u16, u16) {
-        let x = std::cmp::min(self.cursor.0 + container.x + 1, container.width - 2);
+        let padding = self.line_padding + 1;
+        let x = std::cmp::min(
+            self.cursor.0 + container.x + 1,
+            container.width - 2 - padding as u16,
+        );
         let y = std::cmp::min(
             self.cursor.1 + container.y + 1 - self.scroll.0,
             container.y + container.height - 2,
