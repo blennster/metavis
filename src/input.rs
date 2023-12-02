@@ -33,7 +33,9 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
             app_state.mark_nodes_under_cursor();
         } else if app_state.focus == AppFocus::Diagnostics {
             handle_diagnostic_inputs(key, app_state);
-            let current = &app_state.diagnostics.selected().unwrap().current().unwrap();
+            let selected = &app_state.diagnostics.selected().unwrap();
+            app_state.sv.highlights = selected.locs.clone();
+            let current = selected.current().unwrap();
             app_state.sv.cursor = (
                 (current.start_col - 1) as u16,
                 (current.start_line - 1) as u16,
@@ -88,10 +90,12 @@ fn handle_diagnostic_inputs(key: event::KeyEvent, app_state: &mut crate::app_sta
         KeyCode::Char('j') | KeyCode::Down => {
             app_state.diagnostics.selected().unwrap().unset();
             app_state.diagnostics.down();
+            app_state.diagnostics.selected().unwrap().set();
         }
         KeyCode::Char('k') | KeyCode::Up => {
             app_state.diagnostics.selected().unwrap().unset();
             app_state.diagnostics.up();
+            app_state.diagnostics.selected().unwrap().set();
         }
         KeyCode::Char('l') | KeyCode::Right => {
             app_state.diagnostics.selected().unwrap().next();

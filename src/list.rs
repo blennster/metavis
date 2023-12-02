@@ -50,20 +50,6 @@ impl<T> List<T> {
     }
 }
 
-// impl<T> List<T>
-// where
-//     for<'a> &'a T: Into<ListItem<'a>>,
-// {
-//     pub fn widget(&self) -> ratatui::widgets::List {
-//         ratatui::widgets::List::new(
-//             self.items
-//                 .iter()
-//                 .map(|i| Into::<ListItem>::into(i))
-//                 .collect::<Vec<_>>(),
-//         )
-//     }
-// }
-
 impl<T> List<T>
 where
     for<'a> T: Into<ratatui::text::Text<'a>>,
@@ -82,6 +68,6 @@ where
         }
 
         let list_items = items.into_iter().map(ListItem::new).collect::<Vec<_>>();
-        ratatui::widgets::List::new(list_items).highlight_symbol(">>")
+        ratatui::widgets::List::new(list_items).highlight_symbol(">")
     }
 }

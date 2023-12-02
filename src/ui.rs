@@ -13,7 +13,7 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
     let border = Block::new().borders(Borders::ALL);
 
     app_state.sv.update_scroll(&left_pane);
-    let source_widget = app_state.sv.get_widget(left_pane.height - 2);
+    let source_widget = app_state.sv.get_widget();
     let source_name = app_state.sv.name.clone();
     frame.render_widget(
         source_widget.block(border.clone().title(source_name)),

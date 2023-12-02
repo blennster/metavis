@@ -36,16 +36,16 @@ impl SourceView {
     }
 
     fn get_color(n: &usize) -> Style {
-        match n {
-            0 => Style::default(),
+        match n % 5 {
             1 => Style::default().bg(ratatui::style::Color::Green),
             2 => Style::default().bg(ratatui::style::Color::Red),
             3 => Style::default().bg(ratatui::style::Color::Blue),
-            _ => Style::default().bg(ratatui::style::Color::Yellow),
+            4 => Style::default().bg(ratatui::style::Color::Yellow),
+            _ => Style::default(),
         }
     }
 
-    pub fn get_widget<'a>(&mut self, lines_in_view: u16) -> Paragraph<'a> {
+    pub fn get_widget<'a>(&mut self) -> Paragraph<'a> {
         if self.highlights.is_empty() {
             return Paragraph::new(self.content.clone());
         }
@@ -102,13 +102,7 @@ impl SourceView {
         }
 
         let p = Paragraph::new(lines);
-        // if self.cursor.1 >= self.scroll.0 + lines_in_view {
-        //     self.scroll.0 += 1;
-        // } else if self.cursor.1 < self.scroll.0 {
-        //     self.scroll.0 -= 1;
-        // }
 
-        //p.wrap(ratatui::widgets::Wrap { trim: false })
         p.scroll(self.scroll)
     }
 

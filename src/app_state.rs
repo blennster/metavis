@@ -97,6 +97,7 @@ impl AppState {
         sv.name = diags[0].source.name.clone();
 
         let diag = self.diagnostics.selected().unwrap();
+        diag.set();
         let highlights = diag.locs.clone();
         sv.highlights = highlights;
 

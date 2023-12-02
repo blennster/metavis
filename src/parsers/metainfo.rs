@@ -87,7 +87,7 @@ impl MetaInfo {
                 .iter()
                 .map(|n| match debug_locs.iter().find(|l| l.node_id == *n) {
                     Some(l) => l.loc.clone(),
-                    None => super::loc_file::Loc::default(),
+                    None => super::loc_file::Loc::default(), // TODO: Fix this
                 })
                 .collect();
 

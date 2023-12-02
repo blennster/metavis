@@ -31,6 +31,10 @@ impl Diagnostic {
         self.current_loc = None;
     }
 
+    pub fn set(&mut self) {
+        self.current_loc = Some(0);
+    }
+
     pub fn current(&self) -> Option<&Loc> {
         self.locs.get(self.current_loc.unwrap_or(0))
     }
