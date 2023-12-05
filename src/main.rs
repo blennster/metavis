@@ -25,7 +25,9 @@ fn make_app_state<'a>(source_dir: &str) -> anyhow::Result<app_state::AppState> {
     files.sort();
     let files = list::List::new(files);
 
-    let app_state = app_state::AppState::new(metainfo, files);
+    let mut app_state = app_state::AppState::new(metainfo, files);
+    let category = app_state.diagnostic_types.items[0].clone();
+    app_state.get_diags_for_category(&category);
 
     Ok(app_state)
 }
