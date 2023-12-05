@@ -61,7 +61,7 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
             handle_diagnostic_type_inputs(key, app_state);
         } else if app_state.focus == AppFocus::Diagnostics {
             // Prevent crashes by returning early
-            if app_state.diagnostics.items.len() == 0 {
+            if app_state.diagnostics.items.is_empty() {
                 return Ok(());
             }
 

@@ -46,9 +46,6 @@ impl SourceView {
     }
 
     pub fn get_widget<'a>(&mut self) -> Paragraph<'a> {
-        if self.highlights.is_empty() {
-            return Paragraph::new(self.content.clone());
-        }
         let source_lines = self.content.lines();
         let n_lines = source_lines.clone().count().to_string().len();
         self.line_padding = n_lines;
@@ -59,6 +56,13 @@ impl SourceView {
             let j = i + 1;
             let line_no = Span::from(format!("{:>pad$} ", j, pad = self.line_padding));
             let mut content = vec![line_no];
+
+            if self.highlights.is_empty() {
+                content.push(Span::raw(line));
+                lines.push(Line::from(content));
+                continue;
+            }
+
             let highlights_for_line = self
                 .highlights
                 .iter()
@@ -133,10 +137,29 @@ impl SourceView {
             Direction::Left => {
                 self.cursor.0 = match self.cursor.0 {
                     0 => 0,
-                    x => x - 1,
+                    x => {
+                        let line_len = self
+                            .content
+                            .lines().nth(self.cursor.1 as usize)
+                            .unwrap_or("")
+                            .len() as u16;
+                        if x > line_len {
+                            line_len - 2
+                        } else {
+                            x - 1
+                        }
+                    }
                 };
             }
             Direction::Right => {
+                let line_len = self
+                    .content
+                    .lines().nth(self.cursor.1 as usize)
+                    .unwrap_or("")
+                    .len() as u16;
+                if self.cursor.0 >= line_len {
+                    self.cursor.0 = line_len - 2;
+                }
                 self.cursor.0 += 1;
             }
         }
@@ -160,16 +183,21 @@ impl SourceView {
     }
 
     pub fn global_cursor(&self, container: &ratatui::prelude::Rect) -> (u16, u16) {
-        let padding = self.line_padding + 1;
-        let x = std::cmp::min(
-            self.cursor.0 + container.x + 1,
-            container.width - 2 - padding as u16,
-        );
+        let padding = self.line_padding as u16 + 1;
+        let line_len = self
+            .content
+            .lines().nth(self.cursor.1 as usize)
+            .unwrap_or("")
+            .len() as u16;
+        let max_x = std::cmp::min(line_len, container.width - 2 - padding);
+
+        let x = std::cmp::min(self.cursor.0 + container.x + 1, max_x);
+
         let y = std::cmp::min(
             self.cursor.1 + container.y + 1 - self.scroll.0,
             container.y + container.height - 2,
         );
 
-        (x + self.line_padding as u16 + 1, y)
+        (x + padding + 1, y)
     }
 }

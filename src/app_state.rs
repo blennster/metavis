@@ -1,8 +1,6 @@
-use std::rc::Rc;
-
 use crate::{
     list::{self, List},
-    parsers::{Diagnostic, MetaInfo, SourceFile},
+    parsers::{Diagnostic, MetaInfo},
     source_view::SourceView,
 };
 
@@ -44,6 +42,7 @@ impl AppState {
             .map(|d| d.name.clone())
             .collect::<Vec<_>>();
         diagnostic_types.dedup();
+
         AppState {
             metainfo,
             diagnostic_types: List::new(diagnostic_types),
@@ -65,7 +64,8 @@ impl AppState {
             .debug_locs
             .iter()
             .filter(|d| {
-                d.loc.start_line <= row
+                d.loc.source_file == self.sv.name
+                    && d.loc.start_line <= row
                     && d.loc.start_col <= col
                     && d.loc.end_col >= col
                     && d.loc.end_line >= row
