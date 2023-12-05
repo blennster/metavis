@@ -4,7 +4,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::{app_state};
+use crate::app_state;
 
 fn get_border(title: &str, is_in_focus: bool) -> Block<'_> {
     let border = Block::new().borders(Borders::ALL).title(title);
@@ -24,18 +24,16 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
     app_state.sv.update_scroll(&left_pane);
     let source_widget = app_state.sv.get_widget();
 
-    let source_name = match app_state.sv.name.trim().is_empty() {
-        true => String::from("[s]ource"),
-        false => app_state.sv.name.clone(),
-    };
-
+    let source_name = &app_state.sv.name;
     frame.render_widget(
         source_widget.block(
-            get_border(&source_name, app_state.focus == app_state::AppFocus::Source).title(
-                Title::from("[tab]")
-                    .alignment(Alignment::Right)
-                    .position(block::Position::Bottom),
-            ),
+            get_border(&source_name, app_state.focus == app_state::AppFocus::Source)
+                .title(
+                    Title::from("[tab]")
+                        .alignment(Alignment::Right)
+                        .position(block::Position::Bottom),
+                )
+                .title(Title::from("[s]ource").alignment(Alignment::Right)),
         ),
         left_pane,
     );
