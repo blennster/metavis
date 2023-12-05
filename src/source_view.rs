@@ -62,7 +62,9 @@ impl SourceView {
             let highlights_for_line = self
                 .highlights
                 .iter()
-                .filter(|h| h.start_line == j)
+                .filter(|h| {
+                    h.start_line == j || h.end_line == j || (h.start_line < j && j < h.end_line)
+                })
                 .collect::<Vec<_>>();
 
             // if self.cursor.1 == i as u16 && self.cursor.0 > line.len() as u16 {
@@ -84,7 +86,17 @@ impl SourceView {
                 let k = k + 1;
                 level = highlights_for_line
                     .iter()
-                    .filter(|h| h.start_col <= k && k <= h.end_col)
+                    .filter(|h| {
+                        if h.start_line == h.end_line {
+                            h.start_col <= k && k <= h.end_col
+                        } else if h.start_line == j {
+                            h.start_col <= k
+                        } else if h.end_line == j {
+                            k <= h.end_col
+                        } else {
+                            true
+                        }
+                    })
                     .collect::<Vec<_>>()
                     .len();
 
