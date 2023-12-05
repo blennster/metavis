@@ -1,5 +1,4 @@
 mod app_state;
-mod file_picker;
 mod input;
 mod list;
 mod parsers;
@@ -18,7 +17,7 @@ pub fn initialize_panic_handler() {
     }));
 }
 
-fn make_app_state<'a>(source_dir: &str) -> anyhow::Result<app_state::AppState> {
+fn make_app_state(source_dir: &str) -> anyhow::Result<app_state::AppState> {
     let metainfo = parsers::MetaInfo::new(source_dir);
 
     let mut files = metainfo.source_files.keys().cloned().collect::<Vec<_>>();

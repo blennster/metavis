@@ -4,9 +4,9 @@ use ratatui::{
     Frame,
 };
 
-use crate::{app_state, source_view::SourceView};
+use crate::{app_state};
 
-fn get_border<'a>(title: &'a str, is_in_focus: bool) -> Block<'a> {
+fn get_border(title: &str, is_in_focus: bool) -> Block<'_> {
     let border = Block::new().borders(Borders::ALL).title(title);
     let green = Style::new().light_green();
 

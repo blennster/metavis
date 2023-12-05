@@ -1,8 +1,8 @@
-use std::rc::Rc;
+
 
 use ratatui::text::Text;
 
-use super::{lib::SourceFile, loc_file::Loc};
+use super::{loc_file::Loc};
 
 #[derive(Clone)]
 pub struct Diagnostic {
