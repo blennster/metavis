@@ -8,6 +8,7 @@ use crate::{
 
 #[derive(PartialEq)]
 pub enum AppFocus {
+    DiagnosticTypes,
     Diagnostics,
     Source,
     FilePicker,
@@ -18,6 +19,7 @@ impl AppFocus {
         match self {
             AppFocus::Diagnostics => AppFocus::Source,
             AppFocus::Source => AppFocus::Diagnostics,
+            AppFocus::DiagnosticTypes => AppFocus::Diagnostics,
             _ => panic!("invalid call to next"),
         }
     }
@@ -27,6 +29,7 @@ pub struct AppState {
     pub metainfo: MetaInfo,
     pub diagnostics: List<Diagnostic>,
     pub files: List<String>,
+    pub diagnostic_types: List<String>,
     pub should_quit: bool,
     pub focus: AppFocus,
     pub sv: SourceView,
@@ -35,12 +38,19 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(metainfo: MetaInfo, files: List<String>) -> Self {
+        let mut diagnostic_types = metainfo
+            .diagnostics
+            .iter()
+            .map(|d| d.name.clone())
+            .collect::<Vec<_>>();
+        diagnostic_types.dedup();
         AppState {
             metainfo,
+            diagnostic_types: List::new(diagnostic_types),
             diagnostics: List::new(vec![]),
             files,
             should_quit: false,
-            focus: AppFocus::FilePicker,
+            focus: AppFocus::DiagnosticTypes,
             sv: SourceView::new(),
             current_nodes: vec![],
         }
@@ -82,24 +92,23 @@ impl AppState {
         diags
     }
 
-    /// Load a file from the project
-    pub fn load_file(&mut self, file: &str) {
-        let diags = self.metainfo.get_diags_for_file(file);
+    pub fn get_diags_for_category(&mut self, category: &str) {
+        let diags = self.metainfo.get_diags_for_category(category);
         let mut l = vec![];
         for d in &diags {
             l.push(d.clone());
         }
         let diagnostics = list::List::new(l);
         self.diagnostics = diagnostics;
+    }
+
+    /// Load a file from the project
+    pub fn load_file(&mut self, file: &str) {
+        let sc = &self.metainfo.source_files[file];
 
         let mut sv = SourceView::new();
-        sv.content = diags[0].source.content.clone();
-        sv.name = diags[0].source.name.clone();
-
-        let diag = self.diagnostics.selected().unwrap();
-        diag.set();
-        let highlights = diag.locs.clone();
-        sv.highlights = highlights;
+        sv.content = sc.content.clone();
+        sv.name = file.to_owned();
 
         self.sv = sv;
     }

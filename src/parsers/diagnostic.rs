@@ -7,13 +7,21 @@ use super::{lib::SourceFile, loc_file::Loc};
 #[derive(Clone)]
 pub struct Diagnostic {
     pub name: String,
-    pub source: Rc<SourceFile>,
     pub nodes: Vec<usize>,
     pub locs: Vec<Loc>,
-    pub current_loc: Option<usize>, // TODO: make private / find another way
+    current_loc: Option<usize>, // TODO: make private / find another way
 }
 
 impl Diagnostic {
+    pub fn new(name: String, nodes: Vec<usize>, locs: Vec<Loc>) -> Self {
+        Self {
+            name,
+            nodes,
+            locs,
+            current_loc: None,
+        }
+    }
+
     pub fn next(&mut self) {
         let c = self.current_loc.unwrap_or(0);
         self.current_loc = Some(std::cmp::min(c + 1, self.nodes.len() - 1));
@@ -43,13 +51,16 @@ impl Diagnostic {
 impl<'a> From<Diagnostic> for Text<'a> {
     fn from(val: Diagnostic) -> Self {
         let mut nodes_text = vec![];
+        let mut source_file = &val.locs[0].source_file;
         for (i, n) in val.nodes.iter().enumerate() {
             if val.current_loc.is_some() && i == val.current_loc.unwrap() {
                 nodes_text.push(format!("*{}*", n));
+                source_file = &val.locs[i].source_file;
             } else {
                 nodes_text.push(format!("{}", n));
             }
         }
-        Text::from(format!("{}: {}", val.name, nodes_text.join(",")))
+
+        Text::from(format!("({}) @ {}", nodes_text.join(","), source_file))
     }
 }

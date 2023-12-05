@@ -7,6 +7,7 @@ pub struct Loc {
     pub start_col: usize,
     pub end_line: usize,
     pub end_col: usize,
+    pub source_file: String,
 }
 
 impl Loc {
@@ -37,6 +38,7 @@ impl FromStr for Loc {
             start_col,
             end_line,
             end_col,
+            source_file: String::from(""),
         })
     }
 }
@@ -55,7 +57,8 @@ impl FromStr for DebugLoc {
         let mut splt = s.split(',');
         let node_id = splt.next().ok_or(anyhow!("missing node id"))?.parse()?;
         let source_file = splt.next().ok_or(anyhow!("missing name"))?.to_owned();
-        let loc = Loc::from_str(&splt.collect::<Vec<&str>>().join(",")).unwrap();
+        let mut loc = Loc::from_str(&splt.collect::<Vec<&str>>().join(",")).unwrap();
+        loc.source_file = source_file.clone();
 
         Ok(DebugLoc {
             node_id,

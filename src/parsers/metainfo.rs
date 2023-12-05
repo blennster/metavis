@@ -69,16 +69,18 @@ impl MetaInfo {
         }
     }
 
-    pub fn get_diags_for_file(&self, file: &str) -> Vec<Diagnostic> {
-        let debug_locs: Vec<_> = self
-            .debug_locs
-            .iter()
-            .filter(|d| d.source_file == file)
-            .collect();
+    pub fn get_diags_for_category(&self, category: &str) -> Vec<Diagnostic> {
         let raw_diags = self
             .diagnostics
             .iter()
-            .filter(|d| debug_locs.iter().any(|n| d.nodes.contains(&n.node_id)));
+            .filter(|d| d.name == category)
+            .collect::<Vec<_>>();
+
+        let debug_locs = self
+            .debug_locs
+            .iter()
+            .filter(|d| raw_diags.iter().any(|n| n.nodes.contains(&d.node_id)))
+            .collect::<Vec<_>>();
 
         let mut diags = vec![];
         for d in raw_diags {
@@ -87,17 +89,11 @@ impl MetaInfo {
                 .iter()
                 .map(|n| match debug_locs.iter().find(|l| l.node_id == *n) {
                     Some(l) => l.loc.clone(),
-                    None => super::loc_file::Loc::default(), // TODO: Fix this
+                    None => panic!("node not found in debug locs"), // TODO: Fix this
                 })
                 .collect();
 
-            let d = Diagnostic {
-                name: d.name.clone(),
-                source: self.source_files[file].clone(),
-                nodes: d.nodes.clone(),
-                locs,
-                current_loc: None,
-            };
+            let d = Diagnostic::new(d.name.clone(), d.nodes.clone(), locs);
 
             diags.push(d);
         }
