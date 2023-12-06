@@ -48,13 +48,13 @@ impl SourceView {
     pub fn get_widget<'a>(&mut self) -> Paragraph<'a> {
         let source_lines = self.content.lines();
         let n_lines = source_lines.clone().count().to_string().len();
-        self.line_padding = n_lines;
+        self.line_padding = n_lines + 1;
         let mut lines = Vec::new();
 
         for (i, line) in source_lines.enumerate() {
             let line = line.to_owned();
             let j = i + 1;
-            let line_no = Span::from(format!("{:>pad$} ", j, pad = self.line_padding));
+            let line_no = Span::from(format!("{:>pad$} ", j, pad = self.line_padding - 1));
             let mut content = vec![line_no];
 
             if self.highlights.is_empty() {
@@ -140,27 +140,24 @@ impl SourceView {
                     x => {
                         let line_len = self
                             .content
-                            .lines().nth(self.cursor.1 as usize)
+                            .lines()
+                            .nth(self.cursor.1 as usize)
                             .unwrap_or("")
-                            .len() as u16;
-                        if x > line_len {
-                            line_len - 2
-                        } else {
-                            x - 1
-                        }
+                            .chars()
+                            .count() as u16;
+                        let line_len = match line_len {
+                            0 => 1,
+                            x => x,
+                        };
+                        std::cmp::min(x, line_len) - 1
                     }
                 };
             }
             Direction::Right => {
-                let line_len = self
-                    .content
-                    .lines().nth(self.cursor.1 as usize)
-                    .unwrap_or("")
-                    .len() as u16;
-                if self.cursor.0 >= line_len {
-                    self.cursor.0 = line_len - 2;
+                self.cursor.0 = match self.content.lines().nth(self.cursor.1 as usize) {
+                    Some("") | None => 0,
+                    Some(line) => std::cmp::min(self.cursor.0, line.chars().count() as u16) + 1,
                 }
-                self.cursor.0 += 1;
             }
         }
     }
@@ -173,31 +170,37 @@ impl SourceView {
             self.scroll.0 = self.cursor.1;
         }
 
-        let padding = self.line_padding + 1;
-        let cols_in_view = container.width - 2 - padding as u16;
+        let padding = self.line_padding as u16;
+        let cols_in_view = container.width - 2 - padding;
         if self.cursor.0 >= self.scroll.1 + cols_in_view {
             self.scroll.1 = self.cursor.0 - cols_in_view + 1;
-        } else if self.cursor.0 <= self.scroll.1 {
+        } else if self.cursor.0 < self.scroll.1 {
             self.scroll.1 = self.cursor.0;
         }
     }
 
     pub fn global_cursor(&self, container: &ratatui::prelude::Rect) -> (u16, u16) {
-        let padding = self.line_padding as u16 + 1;
+        let padding = self.line_padding as u16;
         let line_len = self
             .content
-            .lines().nth(self.cursor.1 as usize)
+            .lines()
+            .nth(self.cursor.1 as usize)
             .unwrap_or("")
-            .len() as u16;
-        let max_x = std::cmp::min(line_len, container.width - 2 - padding);
+            .chars()
+            .count() as u16;
+        let line_bounded = std::cmp::min(self.cursor.0, line_len);
+        let window_bounded = std::cmp::min(line_bounded, container.width - 2 - padding);
 
-        let x = std::cmp::min(self.cursor.0 + container.x + 1, max_x);
+        // Stay out of gutter
+        let bounded_cursor = std::cmp::max(window_bounded, 1);
+
+        let x = padding + container.x + bounded_cursor - self.scroll.1;
 
         let y = std::cmp::min(
             self.cursor.1 + container.y + 1 - self.scroll.0,
             container.y + container.height - 2,
         );
 
-        (x + padding + 1, y)
+        (x, y)
     }
 }
