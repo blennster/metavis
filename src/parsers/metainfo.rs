@@ -69,6 +69,40 @@ impl MetaInfo {
         }
     }
 
+    // TODO: Make more performant
+    pub fn get_diags(&self, nodes: &[usize]) -> Vec<Diagnostic> {
+        let raw_diags = self
+            .diagnostics
+            .iter()
+            .filter(|d| nodes.iter().any(|n| d.nodes.contains(n)))
+            .collect::<Vec<_>>();
+
+        let debug_locs = self
+            .debug_locs
+            .iter()
+            .filter(|d| raw_diags.iter().any(|n| n.nodes.contains(&d.node_id)))
+            .collect::<Vec<_>>();
+
+        let mut diags = vec![];
+        for d in raw_diags {
+            let locs = d
+                .nodes
+                .iter()
+                .map(|n| match debug_locs.iter().find(|l| l.node_id == *n) {
+                    Some(l) => l.loc.clone(),
+                    None => panic!("node not found in debug locs"), // TODO: Fix this
+                })
+                .collect();
+
+            let d = Diagnostic::new(d.name.clone(), d.nodes.clone(), locs);
+
+            diags.push(d);
+        }
+
+        diags
+    }
+
+    // TODO: Make more performant
     pub fn get_diags_for_category(&self, category: &str) -> Vec<Diagnostic> {
         let raw_diags = self
             .diagnostics

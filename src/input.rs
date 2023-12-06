@@ -15,7 +15,6 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
             }
             KeyCode::Tab => {
                 app_state.focus = app_state.focus.next();
-                return Ok(());
             }
             KeyCode::Char('t') => {
                 if app_state.focus == AppFocus::DiagnosticTypes {
@@ -23,7 +22,6 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
                 } else {
                     app_state.focus = AppFocus::DiagnosticTypes;
                 }
-                return Ok(());
             }
             KeyCode::Char('d') => {
                 if app_state.focus == AppFocus::Diagnostics {
@@ -31,7 +29,6 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
                 } else {
                     app_state.focus = AppFocus::Diagnostics;
                 }
-                return Ok(());
             }
             KeyCode::Char('s') => {
                 if app_state.focus == AppFocus::Source {
@@ -39,7 +36,6 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
                 } else {
                     app_state.focus = AppFocus::Source;
                 }
-                return Ok(());
             }
             KeyCode::Char('f') => {
                 app_state.focus = AppFocus::FilePicker;
@@ -66,7 +62,7 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
                 return Ok(());
             }
             handle_diagnostic_inputs(key, app_state);
-            app_state.scroll_into_view();
+            app_state.update_view();
         } else if app_state.focus == AppFocus::FilePicker {
             handle_file_picker_inputs(key, app_state);
         }
@@ -146,6 +142,4 @@ fn handle_diagnostic_inputs(key: event::KeyEvent, app_state: &mut crate::app_sta
         }
         _ => {}
     }
-
-    app_state.update_view();
 }

@@ -58,17 +58,25 @@ impl AppState {
     pub fn nodes_at(&self, row: usize, col: usize) -> Vec<usize> {
         // Adjust for indexing
         let row = row + 1;
-        let col = col + 1;
 
         self.metainfo
             .debug_locs
             .iter()
             .filter(|d| {
-                d.loc.source_file == self.sv.name
-                    && d.loc.start_line <= row
-                    && d.loc.start_col <= col
-                    && d.loc.end_col >= col
-                    && d.loc.end_line >= row
+                let h = &d.loc;
+                if d.loc.source_file == self.sv.name && (h.start_line <= row && row <= h.end_line) {
+                    if h.start_line == h.end_line {
+                        h.start_col <= col && col <= h.end_col
+                    } else if h.start_line == row {
+                        h.start_col <= col
+                    } else if h.end_line == row {
+                        col <= h.end_col
+                    } else {
+                        true
+                    }
+                } else {
+                    false
+                }
             })
             .map(|d| d.node_id)
             .collect()
@@ -81,13 +89,8 @@ impl AppState {
             .mark(|d| d.nodes.iter().any(|n| self.current_nodes.contains(n)));
     }
 
-    pub fn get_current_diags(&self) -> Vec<&Diagnostic> {
-        let diags = self
-            .diagnostics
-            .items
-            .iter()
-            .filter(|d| d.nodes.iter().any(|n| self.current_nodes.contains(n)))
-            .collect::<Vec<_>>();
+    pub fn get_current_diags(&self) -> Vec<Diagnostic> {
+        let diags = self.metainfo.get_diags(&self.current_nodes);
 
         diags
     }
@@ -111,5 +114,33 @@ impl AppState {
         sv.name = file.to_owned();
 
         self.sv = sv;
+    }
+
+    pub fn update_view(&mut self) {
+        let diag = self.diagnostics.selected().unwrap();
+        let loc = diag.current().unwrap();
+
+        if self.sv.name != loc.source_file {
+            let mut sv = SourceView::new();
+            sv.name = loc.source_file.clone();
+            sv.content = match self.metainfo.source_files.get(&sv.name) {
+                Some(s) => s.content.clone(),
+                None => "-- FILE NOT FOUND --".to_owned(),
+            };
+            self.sv = sv;
+        }
+
+        let sv = &mut self.sv;
+        sv.highlights = diag.locs.clone();
+        self.scroll_into_view();
+        let (col, row) = self.sv.cursor;
+        self.current_nodes = self.nodes_at(row.into(), col.into());
+    }
+
+    pub fn scroll_into_view(&mut self) {
+        let selected = &self.diagnostics.selected().unwrap();
+        self.sv.highlights = selected.locs.clone();
+        let current = selected.current().unwrap();
+        self.sv.cursor = ((current.start_col) as u16, (current.start_line - 1) as u16);
     }
 }
