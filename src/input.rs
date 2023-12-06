@@ -1,6 +1,6 @@
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 
-use crate::{app_state::AppFocus, source_view::SourceView};
+use crate::app_state::AppFocus;
 
 pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Result<()> {
     if let Event::Key(key) = event::read()? {
@@ -59,20 +59,14 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
             app_state.mark_nodes_under_cursor();
         } else if app_state.focus == AppFocus::DiagnosticTypes {
             handle_diagnostic_type_inputs(key, app_state);
+            app_state.update_view();
         } else if app_state.focus == AppFocus::Diagnostics {
             // Prevent crashes by returning early
             if app_state.diagnostics.items.is_empty() {
                 return Ok(());
             }
-
             handle_diagnostic_inputs(key, app_state);
-            let selected = &app_state.diagnostics.selected().unwrap();
-            app_state.sv.highlights = selected.locs.clone();
-            let current = selected.current().unwrap();
-            app_state.sv.cursor = (
-                (current.start_col - 1) as u16,
-                (current.start_line - 1) as u16,
-            );
+            app_state.scroll_into_view();
         } else if app_state.focus == AppFocus::FilePicker {
             handle_file_picker_inputs(key, app_state);
         }
@@ -153,20 +147,5 @@ fn handle_diagnostic_inputs(key: event::KeyEvent, app_state: &mut crate::app_sta
         _ => {}
     }
 
-    let diag = app_state.diagnostics.selected().unwrap();
-    let loc = diag.current().unwrap();
-
-    if app_state.sv.name != loc.source_file {
-        let mut sv = SourceView::new();
-        sv.name = loc.source_file.clone();
-        sv.content = match app_state.metainfo.source_files.get(&sv.name) {
-            Some(s) => s.content.clone(),
-            None => "-- FILE NOT FOUND --".to_owned(),
-        };
-        app_state.sv = sv;
-    }
-
-    let sv = &mut app_state.sv;
-    sv.cursor = ((loc.start_col - 1) as u16, (loc.start_line - 1) as u16);
-    sv.highlights = diag.locs.clone();
+    app_state.update_view();
 }

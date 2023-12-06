@@ -27,6 +27,7 @@ fn make_app_state(source_dir: &str) -> anyhow::Result<app_state::AppState> {
     let mut app_state = app_state::AppState::new(metainfo, files);
     let category = app_state.diagnostic_types.items[0].clone();
     app_state.get_diags_for_category(&category);
+    app_state.update_view();
 
     Ok(app_state)
 }
