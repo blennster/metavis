@@ -90,9 +90,9 @@ impl AppState {
     }
 
     pub fn get_current_diags(&self) -> Vec<Diagnostic> {
-        let diags = self.metainfo.get_diags(&self.current_nodes);
+        
 
-        diags
+        self.metainfo.get_diags(&self.current_nodes)
     }
 
     pub fn get_diags_for_category(&mut self, category: &str) {
@@ -123,10 +123,7 @@ impl AppState {
         if self.sv.name != loc.source_file {
             let mut sv = SourceView::new();
             sv.name = loc.source_file.clone();
-            sv.content = match self.metainfo.source_files.get(&sv.name) {
-                Some(s) => Some(s.content.clone()),
-                None => None,
-            };
+            sv.content = self.metainfo.source_files.get(&sv.name).map(|s| s.content.clone());
             self.sv = sv;
         }
 

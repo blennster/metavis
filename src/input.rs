@@ -56,7 +56,7 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
         } else if app_state.focus == AppFocus::DiagnosticTypes {
             handle_diagnostic_type_inputs(key, app_state);
             app_state.update_view();
-            app_state.diagnostics.selected().map(|s| s.set());
+            if let Some(s) = app_state.diagnostics.selected() { s.set() }
         } else if app_state.focus == AppFocus::Diagnostics {
             // Prevent crashes by returning early
             if app_state.diagnostics.items.is_empty() {
@@ -126,20 +126,20 @@ fn handle_source_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::
 fn handle_diagnostic_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
     match key.code {
         KeyCode::Char('j') | KeyCode::Down => {
-            app_state.diagnostics.selected().map(|s| s.unset());
+            if let Some(s) = app_state.diagnostics.selected() { s.unset() }
             app_state.diagnostics.down();
-            app_state.diagnostics.selected().map(|s| s.set());
+            if let Some(s) = app_state.diagnostics.selected() { s.set() }
         }
         KeyCode::Char('k') | KeyCode::Up => {
-            app_state.diagnostics.selected().map(|s| s.unset());
+            if let Some(s) = app_state.diagnostics.selected() { s.unset() }
             app_state.diagnostics.up();
-            app_state.diagnostics.selected().map(|s| s.set());
+            if let Some(s) = app_state.diagnostics.selected() { s.set() }
         }
         KeyCode::Char('l') | KeyCode::Right => {
-            app_state.diagnostics.selected().map(|s| s.next());
+            if let Some(s) = app_state.diagnostics.selected() { s.next() }
         }
         KeyCode::Char('h') | KeyCode::Left => {
-            app_state.diagnostics.selected().map(|s| s.prev());
+            if let Some(s) = app_state.diagnostics.selected() { s.prev() }
         }
         _ => {}
     }

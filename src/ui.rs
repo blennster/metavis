@@ -27,7 +27,7 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
     let source_name = &app_state.sv.name;
     frame.render_widget(
         source_widget.block(
-            get_border(&source_name, app_state.focus == app_state::AppFocus::Source)
+            get_border(source_name, app_state.focus == app_state::AppFocus::Source)
                 .title(
                     Title::from("[tab]")
                         .alignment(Alignment::Right)
@@ -69,12 +69,12 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         );
     }
 
-    let diags;
-    if app_state.sv.content.is_some() {
-        diags = app_state.get_current_diags();
+    let diags = if app_state.sv.content.is_some() {
+        app_state.get_current_diags()
     } else {
-        diags = vec![];
-    }
+        vec![]
+    };
+
     frame.render_widget(
         Paragraph::new(
             diags

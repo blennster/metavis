@@ -28,7 +28,7 @@ fn make_app_state(source_dir: &str) -> anyhow::Result<app_state::AppState> {
     let category = app_state.diagnostic_types.items[0].clone();
     app_state.get_diags_for_category(&category);
     app_state.update_view();
-    app_state.diagnostics.selected().map(|s| s.set());
+    if let Some(s) = app_state.diagnostics.selected() { s.set() }
 
     Ok(app_state)
 }
