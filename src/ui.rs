@@ -61,11 +61,22 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         frame.render_widget(Clear, popup_area);
         frame.render_stateful_widget(
             app_state.files.widget().block(get_border(
-                "Files",
+                "files",
                 app_state.focus == app_state::AppFocus::FilePicker,
             )),
             popup_area,
             &mut app_state.files.state,
+        );
+    }
+    if app_state.focus == app_state::AppFocus::LinePicker {
+        let popup_area = centered_rect(10, 5, area);
+        frame.render_widget(Clear, popup_area);
+        frame.render_widget(
+            Paragraph::new(app_state.input_buffer.as_str()).block(get_border(
+                "goto line:",
+                app_state.focus == app_state::AppFocus::LinePicker,
+            )),
+            popup_area,
         );
     }
 

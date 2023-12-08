@@ -46,6 +46,9 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
                 if app_state.focus == AppFocus::FilePicker {
                     app_state.focus = AppFocus::Source;
                 }
+                if app_state.focus == AppFocus::LinePicker {
+                    app_state.focus = AppFocus::Source;
+                }
             }
             _ => {}
         };
@@ -56,7 +59,9 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
         } else if app_state.focus == AppFocus::DiagnosticTypes {
             handle_diagnostic_type_inputs(key, app_state);
             app_state.update_view();
-            if let Some(s) = app_state.diagnostics.selected() { s.set() }
+            if let Some(s) = app_state.diagnostics.selected() {
+                s.set()
+            }
         } else if app_state.focus == AppFocus::Diagnostics {
             // Prevent crashes by returning early
             if app_state.diagnostics.items.is_empty() {
@@ -66,10 +71,35 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
             app_state.update_view();
         } else if app_state.focus == AppFocus::FilePicker {
             handle_file_picker_inputs(key, app_state);
+        } else if app_state.focus == AppFocus::LinePicker {
+            handle_line_picker_inputs(key, app_state);
         }
     }
 
     Ok(())
+}
+
+fn handle_line_picker_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
+    match key.code {
+        KeyCode::Char('0') => app_state.input_buffer.push_str("0"),
+        KeyCode::Char('1') => app_state.input_buffer.push_str("1"),
+        KeyCode::Char('2') => app_state.input_buffer.push_str("2"),
+        KeyCode::Char('3') => app_state.input_buffer.push_str("3"),
+        KeyCode::Char('4') => app_state.input_buffer.push_str("4"),
+        KeyCode::Char('5') => app_state.input_buffer.push_str("5"),
+        KeyCode::Char('6') => app_state.input_buffer.push_str("6"),
+        KeyCode::Char('7') => app_state.input_buffer.push_str("7"),
+        KeyCode::Char('8') => app_state.input_buffer.push_str("8"),
+        KeyCode::Char('9') => app_state.input_buffer.push_str("9"),
+        KeyCode::Enter => {
+            let target = app_state.input_buffer.parse::<u16>();
+            if let Ok(target) = target {
+                app_state.sv.move_to((0, target - 1));
+            }
+            app_state.focus = AppFocus::Source;
+        }
+        _ => {}
+    };
 }
 
 fn handle_diagnostic_type_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
@@ -119,6 +149,16 @@ fn handle_source_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::
                 .sv
                 .move_cursor(crate::source_view::Direction::Left);
         }
+        KeyCode::Char('g') | KeyCode::Home => {
+            app_state.sv.move_to_start();
+        }
+        KeyCode::Char('G') | KeyCode::End => {
+            app_state.sv.move_to_end();
+        }
+        KeyCode::Char(':') => {
+            app_state.focus = AppFocus::LinePicker;
+            app_state.input_buffer.clear();
+        }
         _ => {}
     }
 }
@@ -126,20 +166,32 @@ fn handle_source_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::
 fn handle_diagnostic_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
     match key.code {
         KeyCode::Char('j') | KeyCode::Down => {
-            if let Some(s) = app_state.diagnostics.selected() { s.unset() }
+            if let Some(s) = app_state.diagnostics.selected() {
+                s.unset()
+            }
             app_state.diagnostics.down();
-            if let Some(s) = app_state.diagnostics.selected() { s.set() }
+            if let Some(s) = app_state.diagnostics.selected() {
+                s.set()
+            }
         }
         KeyCode::Char('k') | KeyCode::Up => {
-            if let Some(s) = app_state.diagnostics.selected() { s.unset() }
+            if let Some(s) = app_state.diagnostics.selected() {
+                s.unset()
+            }
             app_state.diagnostics.up();
-            if let Some(s) = app_state.diagnostics.selected() { s.set() }
+            if let Some(s) = app_state.diagnostics.selected() {
+                s.set()
+            }
         }
         KeyCode::Char('l') | KeyCode::Right => {
-            if let Some(s) = app_state.diagnostics.selected() { s.next() }
+            if let Some(s) = app_state.diagnostics.selected() {
+                s.next()
+            }
         }
         KeyCode::Char('h') | KeyCode::Left => {
-            if let Some(s) = app_state.diagnostics.selected() { s.prev() }
+            if let Some(s) = app_state.diagnostics.selected() {
+                s.prev()
+            }
         }
         _ => {}
     }

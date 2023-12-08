@@ -10,6 +10,7 @@ pub enum AppFocus {
     Diagnostics,
     Source,
     FilePicker,
+    LinePicker,
 }
 
 impl AppFocus {
@@ -32,6 +33,7 @@ pub struct AppState {
     pub focus: AppFocus,
     pub sv: SourceView,
     pub current_nodes: Vec<usize>,
+    pub input_buffer: String,
 }
 
 impl AppState {
@@ -52,6 +54,7 @@ impl AppState {
             focus: AppFocus::DiagnosticTypes,
             sv: SourceView::new(),
             current_nodes: vec![],
+            input_buffer: String::new(),
         }
     }
 
@@ -83,15 +86,13 @@ impl AppState {
     }
 
     pub fn mark_nodes_under_cursor(&mut self) {
-        let (col, row) = self.sv.cursor;
+        let (col, row) = self.sv.get_cursor();
         self.current_nodes = self.nodes_at(row.into(), col.into());
         self.diagnostics
             .mark(|d| d.nodes.iter().any(|n| self.current_nodes.contains(n)));
     }
 
     pub fn get_current_diags(&self) -> Vec<Diagnostic> {
-        
-
         self.metainfo.get_diags(&self.current_nodes)
     }
 
@@ -123,14 +124,18 @@ impl AppState {
         if self.sv.name != loc.source_file {
             let mut sv = SourceView::new();
             sv.name = loc.source_file.clone();
-            sv.content = self.metainfo.source_files.get(&sv.name).map(|s| s.content.clone());
+            sv.content = self
+                .metainfo
+                .source_files
+                .get(&sv.name)
+                .map(|s| s.content.clone());
             self.sv = sv;
         }
 
         let sv = &mut self.sv;
         sv.highlights = diag.locs.clone();
         self.scroll_into_view();
-        let (col, row) = self.sv.cursor;
+        let (col, row) = self.sv.get_cursor();
         self.current_nodes = self.nodes_at(row.into(), col.into());
     }
 
@@ -138,6 +143,7 @@ impl AppState {
         let selected = &self.diagnostics.selected().unwrap();
         self.sv.highlights = selected.locs.clone();
         let current = selected.current().unwrap();
-        self.sv.cursor = ((current.start_col) as u16, (current.start_line - 1) as u16);
+        let target = ((current.start_col) as u16, (current.start_line - 1) as u16);
+        self.sv.move_to(target);
     }
 }

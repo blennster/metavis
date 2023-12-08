@@ -10,9 +10,9 @@ pub struct SourceView {
     pub content: Option<String>,
     pub highlights: Vec<Loc>,
     /// Note: This is (y, x) and not (x, y)
-    pub scroll: (u16, u16),
+    scroll: (u16, u16),
     /// (x, y)
-    pub cursor: (u16, u16),
+    cursor: (u16, u16),
     line_padding: usize,
 }
 
@@ -118,6 +118,28 @@ impl SourceView {
         let p = Paragraph::new(lines);
 
         p.scroll(self.scroll)
+    }
+
+    pub fn move_to(&mut self, target: (u16, u16)) {
+        if let Some(c) = &self.content {
+            if target.0 <= c.lines().count() as u16 {
+                self.cursor = target;
+            }
+        }
+    }
+    pub fn move_to_start(&mut self) {
+        self.move_to((0, 0));
+    }
+
+    pub fn move_to_end(&mut self) {
+        if let Some(c) = &self.content {
+            let lines = c.lines().count() as u16;
+            self.cursor = (0, lines - 1);
+        }
+    }
+
+    pub fn get_cursor(&self) -> (u16, u16) {
+        self.cursor
     }
 
     // TODO: constrain cursor to content but preserve column like vim
