@@ -7,7 +7,7 @@ use ratatui::{
 use crate::parsers::Loc;
 pub struct SourceView {
     pub name: String,
-    pub content: String,
+    pub content: Option<String>,
     pub highlights: Vec<Loc>,
     /// Note: This is (y, x) and not (x, y)
     pub scroll: (u16, u16),
@@ -27,7 +27,7 @@ impl SourceView {
     pub fn new() -> Self {
         Self {
             name: String::new(),
-            content: String::new(),
+            content: None,
             highlights: Vec::new(),
             scroll: (0, 0),
             cursor: (0, 0),
@@ -46,7 +46,11 @@ impl SourceView {
     }
 
     pub fn get_widget<'a>(&mut self) -> Paragraph<'a> {
-        let source_lines = self.content.lines();
+        let binding = match &self.content {
+            Some(c) => c,
+            None => "-- FILE NOT FOUND --",
+        };
+        let source_lines = binding.lines();
         let n_lines = source_lines.clone().count().to_string().len();
         self.line_padding = n_lines + 1;
         let mut lines = Vec::new();
@@ -118,6 +122,16 @@ impl SourceView {
 
     // TODO: constrain cursor to content but preserve column like vim
     pub fn move_cursor(&mut self, m: Direction) {
+        let line_len = match self.content {
+            Some(ref c) => c
+                .lines()
+                .nth(self.cursor.1 as usize)
+                .unwrap_or("")
+                .chars()
+                .count() as u16,
+            None => return,
+        };
+
         match m {
             Direction::Up => {
                 self.cursor.1 = match self.cursor.1 {
@@ -132,13 +146,6 @@ impl SourceView {
                 self.cursor.0 = match self.cursor.0 {
                     0 => 0,
                     x => {
-                        let line_len = self
-                            .content
-                            .lines()
-                            .nth(self.cursor.1 as usize)
-                            .unwrap_or("")
-                            .chars()
-                            .count() as u16;
                         let line_len = match line_len {
                             0 => 1,
                             x => x,
@@ -148,9 +155,9 @@ impl SourceView {
                 };
             }
             Direction::Right => {
-                self.cursor.0 = match self.content.lines().nth(self.cursor.1 as usize) {
-                    Some("") | None => 0,
-                    Some(line) => std::cmp::min(self.cursor.0, line.chars().count() as u16) + 1,
+                self.cursor.0 = match line_len {
+                    0 => 0,
+                    x => std::cmp::min(x, self.cursor.0) + 1,
                 }
             }
         }
@@ -175,8 +182,13 @@ impl SourceView {
 
     pub fn global_cursor(&self, container: &ratatui::prelude::Rect) -> (u16, u16) {
         let padding = self.line_padding as u16;
+        if self.content.is_none() {
+            return (padding + 1, 1);
+        }
         let line_len = self
             .content
+            .as_ref()
+            .unwrap()
             .lines()
             .nth(self.cursor.1 as usize)
             .unwrap_or("")

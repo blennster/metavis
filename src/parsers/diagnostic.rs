@@ -1,8 +1,6 @@
-
-
 use ratatui::text::Text;
 
-use super::{loc_file::Loc};
+use super::loc_file::Loc;
 
 #[derive(Clone)]
 pub struct Diagnostic {
@@ -51,16 +49,25 @@ impl Diagnostic {
 impl<'a> From<Diagnostic> for Text<'a> {
     fn from(val: Diagnostic) -> Self {
         let mut nodes_text = vec![];
-        let mut source_file = &val.locs[0].source_file;
+        let mut source_files = val
+            .locs
+            .iter()
+            .map(|l| l.source_file.clone())
+            .collect::<Vec<_>>();
+        source_files.dedup();
+
         for (i, n) in val.nodes.iter().enumerate() {
             if val.current_loc.is_some() && i == val.current_loc.unwrap() {
                 nodes_text.push(format!("*{}*", n));
-                source_file = &val.locs[i].source_file;
             } else {
                 nodes_text.push(format!("{}", n));
             }
         }
 
-        Text::from(format!("({}) @ {}", nodes_text.join(","), source_file))
+        Text::from(format!(
+            "({}) @ {}",
+            nodes_text.join(","),
+            source_files.join(" & ")
+        ))
     }
 }

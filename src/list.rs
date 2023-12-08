@@ -59,8 +59,8 @@ where
         let mut items = self
             .items
             .iter()
-            .map(|i| Into::<ratatui::text::Text>::into((*i).clone()))
-            .collect::<Vec<_>>();
+            .map(|i| i.clone().into())
+            .collect::<Vec<ratatui::text::Text>>();
 
         for i in self.marked.iter() {
             items[*i]

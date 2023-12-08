@@ -69,7 +69,12 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         );
     }
 
-    let diags = app_state.get_current_diags();
+    let diags;
+    if app_state.sv.content.is_some() {
+        diags = app_state.get_current_diags();
+    } else {
+        diags = vec![];
+    }
     frame.render_widget(
         Paragraph::new(
             diags

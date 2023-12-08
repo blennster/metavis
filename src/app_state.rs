@@ -110,7 +110,7 @@ impl AppState {
         let sc = &self.metainfo.source_files[file];
 
         let mut sv = SourceView::new();
-        sv.content = sc.content.clone();
+        sv.content = Some(sc.content.clone());
         sv.name = file.to_owned();
 
         self.sv = sv;
@@ -124,8 +124,8 @@ impl AppState {
             let mut sv = SourceView::new();
             sv.name = loc.source_file.clone();
             sv.content = match self.metainfo.source_files.get(&sv.name) {
-                Some(s) => s.content.clone(),
-                None => "-- FILE NOT FOUND --".to_owned(),
+                Some(s) => Some(s.content.clone()),
+                None => None,
             };
             self.sv = sv;
         }
