@@ -17,8 +17,17 @@ impl AppFocus {
     pub fn next(&self) -> AppFocus {
         match self {
             AppFocus::Diagnostics => AppFocus::Source,
-            AppFocus::Source => AppFocus::Diagnostics,
+            AppFocus::Source => AppFocus::DiagnosticTypes,
             AppFocus::DiagnosticTypes => AppFocus::Diagnostics,
+            _ => panic!("invalid call to next"),
+        }
+    }
+
+    pub fn prev(&self) -> AppFocus {
+        match self {
+            AppFocus::Diagnostics => AppFocus::DiagnosticTypes,
+            AppFocus::Source => AppFocus::Diagnostics,
+            AppFocus::DiagnosticTypes => AppFocus::Source,
             _ => panic!("invalid call to next"),
         }
     }

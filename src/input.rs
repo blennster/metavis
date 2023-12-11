@@ -16,6 +16,9 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
             KeyCode::Tab => {
                 app_state.focus = app_state.focus.next();
             }
+            KeyCode::BackTab => {
+                app_state.focus = app_state.focus.prev();
+            }
             KeyCode::Char('t') => {
                 if app_state.focus == AppFocus::DiagnosticTypes {
                     app_state.focus = app_state.focus.next();
@@ -32,7 +35,7 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
             }
             KeyCode::Char('s') => {
                 if app_state.focus == AppFocus::Source {
-                    app_state.focus = app_state.focus.next();
+                    app_state.focus = app_state.focus.prev();
                 } else {
                     app_state.focus = AppFocus::Source;
                 }
