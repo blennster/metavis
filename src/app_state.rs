@@ -1,6 +1,6 @@
 use crate::{
     list::{self, List},
-    parsers::{Diagnostic, MetaInfo},
+    parsers::{Diagnostic, DiagnosticType, MetaInfo},
     source_view::SourceView,
 };
 
@@ -37,7 +37,7 @@ pub struct AppState {
     pub metainfo: MetaInfo,
     pub diagnostics: List<Diagnostic>,
     pub files: List<String>,
-    pub diagnostic_types: List<String>,
+    pub diagnostic_types: List<DiagnosticType>,
     pub should_quit: bool,
     pub focus: AppFocus,
     pub sv: SourceView,
@@ -53,8 +53,12 @@ impl AppState {
             .map(|d| d.name.clone())
             .collect::<Vec<_>>();
         diagnostic_types.dedup();
+        let diagnostic_types = diagnostic_types
+            .into_iter()
+            .map(|s| DiagnosticType::new(s))
+            .collect::<Vec<_>>();
 
-        AppState {
+        Self {
             metainfo,
             diagnostic_types: List::new(diagnostic_types),
             diagnostics: List::new(vec![]),
@@ -127,6 +131,9 @@ impl AppState {
     }
 
     pub fn update_view(&mut self) {
+        if self.diagnostics.selected().is_none() {
+            return;
+        }
         let diag = self.diagnostics.selected().unwrap();
         let loc = diag.current().unwrap();
 

@@ -7,7 +7,9 @@ use ratatui::{
 use crate::app_state;
 
 fn get_border(title: &str, is_in_focus: bool) -> Block<'_> {
-    let border = Block::new().borders(Borders::ALL).title(title);
+    let border = Block::new()
+        .borders(Borders::ALL)
+        .title(format!(" {} ", title));
     let green = Style::new().light_green();
 
     if is_in_focus {
@@ -28,10 +30,12 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
     frame.render_widget(
         source_widget.block(
             get_border(source_name, app_state.focus == app_state::AppFocus::Source)
-                .title(Title::from("[s]ource").alignment(Alignment::Right)).title(
-                Title::from(" [:] goto line ")
-                    .alignment(Alignment::Right)
-                    .position(block::Position::Bottom)),
+                .title(Title::from(" [s]ource ").alignment(Alignment::Right))
+                .title(
+                    Title::from(" [:] goto line ")
+                        .alignment(Alignment::Right)
+                        .position(block::Position::Bottom),
+                ),
         ),
         left_pane,
     );

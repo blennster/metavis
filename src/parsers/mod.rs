@@ -6,5 +6,6 @@ mod loc_file;
 mod metainfo;
 pub type Loc = loc_file::Loc;
 pub type Diagnostic = diagnostic::Diagnostic;
+pub type DiagnosticType = diagnostic::DiagnosticType;
 pub type MetaInfo = metainfo::MetaInfo;
 pub type SourceFile = lib::SourceFile;

@@ -8,6 +8,7 @@ pub struct List<T>
 {
     pub items: Vec<T>,
     pub marked: Vec<usize>,
+    selected: Option<usize>,
     pub state: ratatui::widgets::ListState,
 }
 
@@ -16,6 +17,7 @@ impl<T> List<T> {
         Self {
             items,
             marked: vec![],
+            selected: None,
             state: ratatui::widgets::ListState::default().with_selected(Some(0)),
         }
     }
@@ -35,6 +37,10 @@ impl<T> List<T> {
         });
     }
 
+    pub fn confirm(&mut self) {
+        self.selected = self.state.selected();
+    }
+
     // Mark one or many items based on some filter
     pub fn mark(&mut self, func: impl Fn(&T) -> bool) {
         self.marked = self
@@ -46,7 +52,10 @@ impl<T> List<T> {
     }
 
     pub fn selected(&mut self) -> Option<&mut T> {
-        self.items.get_mut(self.state.selected().unwrap_or(0))
+        match self.selected {
+            Some(x) => self.items.get_mut(x),
+            None => None,
+        }
     }
 }
 

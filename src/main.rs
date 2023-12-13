@@ -24,11 +24,7 @@ fn make_app_state(source_dir: &str) -> anyhow::Result<app_state::AppState> {
     files.sort();
     let files = list::List::new(files);
 
-    let mut app_state = app_state::AppState::new(metainfo, files);
-    let category = app_state.diagnostic_types.items[0].clone();
-    app_state.get_diags_for_category(&category);
-    app_state.update_view();
-    if let Some(s) = app_state.diagnostics.selected() { s.set() }
+    let app_state = app_state::AppState::new(metainfo, files);
 
     Ok(app_state)
 }

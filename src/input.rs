@@ -113,10 +113,19 @@ fn handle_diagnostic_type_inputs(key: event::KeyEvent, app_state: &mut crate::ap
         KeyCode::Char('k') | KeyCode::Up => {
             app_state.diagnostic_types.up();
         }
+        KeyCode::Enter => {
+            if let Some(s) = app_state.diagnostic_types.selected() {
+                s.unmark();
+            }
+            app_state.diagnostic_types.confirm();
+            if let Some(s) = app_state.diagnostic_types.selected() {
+                s.mark();
+            }
+            let category = app_state.diagnostic_types.selected().unwrap().name.clone();
+            app_state.get_diags_for_category(&category);
+        }
         _ => {}
     }
-    let category = &app_state.diagnostic_types.selected().unwrap().clone();
-    app_state.get_diags_for_category(category);
 }
 
 fn handle_file_picker_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
@@ -124,6 +133,7 @@ fn handle_file_picker_inputs(key: event::KeyEvent, app_state: &mut crate::app_st
         KeyCode::Char('j') | KeyCode::Down => app_state.files.down(),
         KeyCode::Char('k') | KeyCode::Up => app_state.files.up(),
         KeyCode::Enter => {
+            app_state.files.confirm();
             let file = app_state.files.selected().unwrap().clone();
             app_state.load_file(&file);
             app_state.focus = AppFocus::Source;
@@ -169,22 +179,10 @@ fn handle_source_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::
 fn handle_diagnostic_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
     match key.code {
         KeyCode::Char('j') | KeyCode::Down => {
-            if let Some(s) = app_state.diagnostics.selected() {
-                s.unset()
-            }
             app_state.diagnostics.down();
-            if let Some(s) = app_state.diagnostics.selected() {
-                s.set()
-            }
         }
         KeyCode::Char('k') | KeyCode::Up => {
-            if let Some(s) = app_state.diagnostics.selected() {
-                s.unset()
-            }
             app_state.diagnostics.up();
-            if let Some(s) = app_state.diagnostics.selected() {
-                s.set()
-            }
         }
         KeyCode::Char('l') | KeyCode::Right => {
             if let Some(s) = app_state.diagnostics.selected() {
@@ -194,6 +192,15 @@ fn handle_diagnostic_inputs(key: event::KeyEvent, app_state: &mut crate::app_sta
         KeyCode::Char('h') | KeyCode::Left => {
             if let Some(s) = app_state.diagnostics.selected() {
                 s.prev()
+            }
+        }
+        KeyCode::Enter => {
+            if let Some(s) = app_state.diagnostics.selected() {
+                s.unset()
+            }
+            app_state.diagnostics.confirm();
+            if let Some(s) = app_state.diagnostics.selected() {
+                s.set()
             }
         }
         _ => {}

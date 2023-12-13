@@ -71,3 +71,36 @@ impl<'a> From<Diagnostic> for Text<'a> {
         ))
     }
 }
+
+#[derive(Clone)]
+pub struct DiagnosticType {
+    pub name: String,
+    current: bool,
+}
+
+impl DiagnosticType {
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+            current: false,
+        }
+    }
+
+    pub fn mark(&mut self) {
+        self.current = true;
+    }
+
+    pub fn unmark(&mut self) {
+        self.current = false;
+    }
+}
+
+impl<'a> From<DiagnosticType> for Text<'a> {
+    fn from(value: DiagnosticType) -> Self {
+        if value.current {
+            Text::from(format!("*{}*", value.name))
+        } else {
+            Text::from(value.name)
+        }
+    }
+}
