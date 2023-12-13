@@ -32,7 +32,7 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
             get_border(source_name, app_state.focus == app_state::AppFocus::Source)
                 .title(Title::from(" [s]ource ").alignment(Alignment::Right))
                 .title(
-                    Title::from(" [:] goto line ")
+                    Title::from(" [:] goto line - [g] goto start - [G] goto end ")
                         .alignment(Alignment::Right)
                         .position(block::Position::Bottom),
                 ),
@@ -57,7 +57,11 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
             "[d]iagnostics",
             app_state.focus == app_state::AppFocus::Diagnostics,
         )
-        .title(Title::from("[left]-[right]").alignment(Alignment::Right)),
+        .title(
+            Title::from(" [left] - [right] ")
+                .alignment(Alignment::Right)
+                .position(block::Position::Bottom),
+        ),
     );
     frame.render_stateful_widget(widget, right_lower_pane, &mut app_state.diagnostics.state);
 
