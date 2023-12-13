@@ -28,12 +28,10 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
     frame.render_widget(
         source_widget.block(
             get_border(source_name, app_state.focus == app_state::AppFocus::Source)
-                .title(
-                    Title::from("[tab]")
-                        .alignment(Alignment::Right)
-                        .position(block::Position::Bottom),
-                )
-                .title(Title::from("[s]ource").alignment(Alignment::Right)),
+                .title(Title::from("[s]ource").alignment(Alignment::Right)).title(
+                Title::from(" [:] goto line ")
+                    .alignment(Alignment::Right)
+                    .position(block::Position::Bottom)),
         ),
         left_pane,
     );
@@ -50,10 +48,13 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         &mut app_state.diagnostic_types.state,
     );
 
-    let widget = app_state.diagnostics.widget().block(get_border(
-        "[d]iagnostics",
-        app_state.focus == app_state::AppFocus::Diagnostics,
-    ));
+    let widget = app_state.diagnostics.widget().block(
+        get_border(
+            "[d]iagnostics",
+            app_state.focus == app_state::AppFocus::Diagnostics,
+        )
+        .title(Title::from("[left]-[right]").alignment(Alignment::Right)),
+    );
     frame.render_stateful_widget(widget, right_lower_pane, &mut app_state.diagnostics.state);
 
     if app_state.focus == app_state::AppFocus::FilePicker {
@@ -105,7 +106,13 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
                 .join(", "),
         )
         .wrap(Wrap { trim: false })
-        .block(get_border("information", false)),
+        .block(
+            get_border("information", false).title(
+                Title::from(" [tab] cycle focus - [f] file picker ")
+                    .alignment(Alignment::Right)
+                    .position(block::Position::Bottom),
+            ),
+        ),
         bottom_pane,
     );
 }
