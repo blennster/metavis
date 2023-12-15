@@ -12,21 +12,24 @@ cargo run
 or 
 
 ```bash
-cargo run -- <project>
+cargo run -- <root>
 ```
+
+or dowload the latest build from the *actions* tab.
+
+**NOTE**: rust in debug mode is much slower than in release mode.
 
 ## Limitations
 
-Since this currently is a WIP these are the major limitations as of now:
-
-* `unwrap()` used and therfore prone to crashes
-* No performance optimizations
+* `unwrap()` used and therfore crashes are possible
+* Some performance optimizations should be done
 * Limited number of tests
 
 ## Usage
 
 ```bash
-metavis <project>
+Usage: metavis <root>
+  <root>    The directory where debug.json resides (with source files in the same directory)
 ```
 
 where project is the directory where `debug.json` is present. This assumes that all files
@@ -35,7 +38,7 @@ where project is the directory where `debug.json` is present. This assumes that 
 ### Navigation
 
 - Navigate the source and list using vim keybindings (`h`, `j`, `k` and `l`) or arrow keys
-  - Left and right can also be used in the *diagnostic* window
+  - Left and right can also be used in the *tuple* window
 - Switching active pane is done with `Tab`
 - Opening file selection window is done with `f`
 - Close the program with `q`

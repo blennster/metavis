@@ -3,14 +3,14 @@ use ratatui::text::Text;
 use super::loc_file::Loc;
 
 #[derive(Clone)]
-pub struct Diagnostic {
+pub struct Tuple {
     pub name: String,
     pub nodes: Vec<usize>,
     pub locs: Vec<Loc>,
     current_loc: Option<usize>, // TODO: make private / find another way
 }
 
-impl Diagnostic {
+impl Tuple {
     pub fn new(name: String, nodes: Vec<usize>, locs: Vec<Loc>) -> Self {
         Self {
             name,
@@ -46,8 +46,8 @@ impl Diagnostic {
     }
 }
 
-impl<'a> From<Diagnostic> for Text<'a> {
-    fn from(val: Diagnostic) -> Self {
+impl<'a> From<Tuple> for Text<'a> {
+    fn from(val: Tuple) -> Self {
         let mut nodes_text = vec![];
         let mut source_files = val
             .locs
@@ -73,12 +73,12 @@ impl<'a> From<Diagnostic> for Text<'a> {
 }
 
 #[derive(Clone)]
-pub struct DiagnosticType {
+pub struct Relation {
     pub name: String,
     current: bool,
 }
 
-impl DiagnosticType {
+impl Relation {
     pub fn new(name: String) -> Self {
         Self {
             name,
@@ -95,8 +95,8 @@ impl DiagnosticType {
     }
 }
 
-impl<'a> From<DiagnosticType> for Text<'a> {
-    fn from(value: DiagnosticType) -> Self {
+impl<'a> From<Relation> for Text<'a> {
+    fn from(value: Relation) -> Self {
         if value.current {
             Text::from(format!("*{}*", value.name))
         } else {

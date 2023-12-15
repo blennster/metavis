@@ -8,37 +8,28 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
             return Ok(());
         }
 
+        if key.modifiers.contains(event::KeyModifiers::CONTROL) && key.code == KeyCode::Char('c')
+            || key.code == KeyCode::Char('q')
+        {
+            app_state.should_quit = true;
+            return Ok(());
+        }
+
         match key.code {
-            KeyCode::Char('q') => {
-                app_state.should_quit = true;
-                return Ok(());
-            }
             KeyCode::Tab => {
                 app_state.focus = app_state.focus.next();
             }
             KeyCode::BackTab => {
                 app_state.focus = app_state.focus.prev();
             }
-            KeyCode::Char('t') => {
-                if app_state.focus == AppFocus::DiagnosticTypes {
-                    app_state.focus = app_state.focus.next();
-                } else {
-                    app_state.focus = AppFocus::DiagnosticTypes;
-                }
+            KeyCode::Char('r') => {
+                app_state.focus = AppFocus::Relations;
             }
-            KeyCode::Char('d') => {
-                if app_state.focus == AppFocus::Diagnostics {
-                    app_state.focus = app_state.focus.next();
-                } else {
-                    app_state.focus = AppFocus::Diagnostics;
-                }
+            KeyCode::Char('t') => {
+                app_state.focus = AppFocus::Tuples;
             }
             KeyCode::Char('s') => {
-                if app_state.focus == AppFocus::Source {
-                    app_state.focus = app_state.focus.prev();
-                } else {
-                    app_state.focus = AppFocus::Source;
-                }
+                app_state.focus = AppFocus::Source;
             }
             KeyCode::Char('f') => {
                 if !app_state.files.items.is_empty() {
@@ -48,9 +39,10 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
             KeyCode::Esc => {
                 if app_state.focus == AppFocus::FilePicker {
                     app_state.focus = AppFocus::Source;
-                }
-                if app_state.focus == AppFocus::LinePicker {
+                } else if app_state.focus == AppFocus::LinePicker {
                     app_state.focus = AppFocus::Source;
+                } else {
+                    app_state.should_quit = true;
                 }
             }
             _ => {}
@@ -59,18 +51,18 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
         if app_state.focus == AppFocus::Source {
             handle_source_inputs(key, app_state);
             app_state.mark_nodes_under_cursor();
-        } else if app_state.focus == AppFocus::DiagnosticTypes {
-            handle_diagnostic_type_inputs(key, app_state);
+        } else if app_state.focus == AppFocus::Relations {
+            handle_relations_inputs(key, app_state);
             app_state.update_view();
-            if let Some(s) = app_state.diagnostics.selected() {
+            if let Some(s) = app_state.tuples.selected() {
                 s.set()
             }
-        } else if app_state.focus == AppFocus::Diagnostics {
+        } else if app_state.focus == AppFocus::Tuples {
             // Prevent crashes by returning early
-            if app_state.diagnostics.items.is_empty() {
+            if app_state.tuples.items.is_empty() {
                 return Ok(());
             }
-            handle_diagnostic_inputs(key, app_state);
+            handle_tuples_inputs(key, app_state);
             app_state.update_view();
         } else if app_state.focus == AppFocus::FilePicker {
             handle_file_picker_inputs(key, app_state);
@@ -105,24 +97,24 @@ fn handle_line_picker_inputs(key: event::KeyEvent, app_state: &mut crate::app_st
     };
 }
 
-fn handle_diagnostic_type_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
+fn handle_relations_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
     match key.code {
         KeyCode::Char('j') | KeyCode::Down => {
-            app_state.diagnostic_types.down();
+            app_state.relations.down();
         }
         KeyCode::Char('k') | KeyCode::Up => {
-            app_state.diagnostic_types.up();
+            app_state.relations.up();
         }
         KeyCode::Enter => {
-            if let Some(s) = app_state.diagnostic_types.selected() {
+            if let Some(s) = app_state.relations.selected() {
                 s.unmark();
             }
-            app_state.diagnostic_types.confirm();
-            if let Some(s) = app_state.diagnostic_types.selected() {
+            app_state.relations.confirm();
+            if let Some(s) = app_state.relations.selected() {
                 s.mark();
             }
-            let category = app_state.diagnostic_types.selected().unwrap().name.clone();
-            app_state.get_diags_for_category(&category);
+            let category = app_state.relations.selected().unwrap().name.clone();
+            app_state.get_tuples_for_relation(&category);
         }
         _ => {}
     }
@@ -176,30 +168,30 @@ fn handle_source_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::
     }
 }
 
-fn handle_diagnostic_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
+fn handle_tuples_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
     match key.code {
         KeyCode::Char('j') | KeyCode::Down => {
-            app_state.diagnostics.down();
+            app_state.tuples.down();
         }
         KeyCode::Char('k') | KeyCode::Up => {
-            app_state.diagnostics.up();
+            app_state.tuples.up();
         }
         KeyCode::Char('l') | KeyCode::Right => {
-            if let Some(s) = app_state.diagnostics.selected() {
+            if let Some(s) = app_state.tuples.selected() {
                 s.next()
             }
         }
         KeyCode::Char('h') | KeyCode::Left => {
-            if let Some(s) = app_state.diagnostics.selected() {
+            if let Some(s) = app_state.tuples.selected() {
                 s.prev()
             }
         }
         KeyCode::Enter => {
-            if let Some(s) = app_state.diagnostics.selected() {
+            if let Some(s) = app_state.tuples.selected() {
                 s.unset()
             }
-            app_state.diagnostics.confirm();
-            if let Some(s) = app_state.diagnostics.selected() {
+            app_state.tuples.confirm();
+            if let Some(s) = app_state.tuples.selected() {
                 s.set()
             }
         }

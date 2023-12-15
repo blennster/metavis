@@ -1,7 +1,7 @@
 use std::{collections::HashMap, io::BufRead, rc::Rc, str::FromStr};
 
 use super::{
-    csv_file::RawDiagnostic, debug_file::DebugJson, diagnostic::Diagnostic, lib::SourceFile,
+    analysis::Tuple, csv_file::RawAnalysis, debug_file::DebugJson, lib::SourceFile,
     loc_file::DebugLoc,
 };
 
@@ -9,7 +9,7 @@ use super::{
 pub struct MetaInfo {
     pub source_files: HashMap<String, Rc<SourceFile>>,
     pub debug_json: Vec<DebugJson>,
-    pub diagnostics: Vec<RawDiagnostic>,
+    pub analyses: Vec<RawAnalysis>,
     pub debug_locs: Vec<DebugLoc>,
 }
 
@@ -17,7 +17,7 @@ impl MetaInfo {
     pub fn new(root: &str) -> Self {
         let json = std::fs::read_to_string(format!("{}/debug.json", root)).unwrap();
         let debug_json = serde_json::from_str::<Vec<DebugJson>>(&json).unwrap();
-        let mut diagnostics = vec![];
+        let mut analyses = vec![];
         let mut source_files: HashMap<String, Rc<SourceFile>> = HashMap::new();
         let mut debug_loc_files: Vec<&str> = vec![];
         let mut debug_locs: Vec<DebugLoc> = vec![];
@@ -25,13 +25,11 @@ impl MetaInfo {
         for d in &debug_json {
             let file = std::fs::File::open(format!("{}/{}", root, d.file)).unwrap();
             let reader = std::io::BufReader::new(file);
-            let mut diags = vec![];
             for line in reader.lines() {
-                let diag = RawDiagnostic::new(&d.fields_with_nodes, &d.name, &line.unwrap());
-                diags.push(diag);
+                let analysis = RawAnalysis::new(&d.fields_with_nodes, &d.name, &line.unwrap());
+                analyses.push(analysis);
             }
 
-            diagnostics.append(&mut diags);
             debug_loc_files.push(&d.loc_file);
         }
 
@@ -64,15 +62,15 @@ impl MetaInfo {
         Self {
             source_files,
             debug_json,
-            diagnostics,
+            analyses,
             debug_locs,
         }
     }
 
     // TODO: Make more performant
-    pub fn get_diags(&self, nodes: &[usize]) -> Vec<Diagnostic> {
-        let raw_diags = self
-            .diagnostics
+    pub fn get_analyses(&self, nodes: &[usize]) -> Vec<Tuple> {
+        let raw_analyses = self
+            .analyses
             .iter()
             .filter(|d| nodes.iter().any(|n| d.nodes.contains(n)))
             .collect::<Vec<_>>();
@@ -80,11 +78,11 @@ impl MetaInfo {
         let debug_locs = self
             .debug_locs
             .iter()
-            .filter(|d| raw_diags.iter().any(|n| n.nodes.contains(&d.node_id)))
+            .filter(|d| raw_analyses.iter().any(|n| n.nodes.contains(&d.node_id)))
             .collect::<Vec<_>>();
 
-        let mut diags = vec![];
-        for d in raw_diags {
+        let mut tuples = vec![];
+        for d in raw_analyses {
             let locs = d
                 .nodes
                 .iter()
@@ -94,30 +92,30 @@ impl MetaInfo {
                 })
                 .collect();
 
-            let d = Diagnostic::new(d.name.clone(), d.nodes.clone(), locs);
+            let d = Tuple::new(d.name.clone(), d.nodes.clone(), locs);
 
-            diags.push(d);
+            tuples.push(d);
         }
 
-        diags
+        tuples
     }
 
     // TODO: Make more performant
-    pub fn get_diags_for_category(&self, category: &str) -> Vec<Diagnostic> {
-        let raw_diags = self
-            .diagnostics
+    pub fn get_tuples_for_relation(&self, relation: &str) -> Vec<Tuple> {
+        let raw_analyses = self
+            .analyses
             .iter()
-            .filter(|d| d.name == category)
+            .filter(|d| d.name == relation)
             .collect::<Vec<_>>();
 
         let debug_locs = self
             .debug_locs
             .iter()
-            .filter(|d| raw_diags.iter().any(|n| n.nodes.contains(&d.node_id)))
+            .filter(|d| raw_analyses.iter().any(|n| n.nodes.contains(&d.node_id)))
             .collect::<Vec<_>>();
 
-        let mut diags = vec![];
-        for d in raw_diags {
+        let mut tuples = vec![];
+        for d in raw_analyses {
             let locs = d
                 .nodes
                 .iter()
@@ -127,12 +125,12 @@ impl MetaInfo {
                 })
                 .collect();
 
-            let d = Diagnostic::new(d.name.clone(), d.nodes.clone(), locs);
+            let d = Tuple::new(d.name.clone(), d.nodes.clone(), locs);
 
-            diags.push(d);
+            tuples.push(d);
         }
 
-        diags
+        tuples
     }
 }
 
@@ -145,7 +143,7 @@ mod tests {
         let meta_info = MetaInfo::new("./example_data");
         assert!(!meta_info.source_files.is_empty());
         assert!(!meta_info.debug_json.is_empty());
-        assert!(!meta_info.diagnostics.is_empty());
+        assert!(!meta_info.analyses.is_empty());
         dbg!(meta_info.source_files);
     }
 }

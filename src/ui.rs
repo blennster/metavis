@@ -42,28 +42,27 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
     let cursor = app_state.sv.global_cursor(&left_pane);
     frame.set_cursor(cursor.0, cursor.1);
 
-    let widget = app_state.diagnostic_types.widget().block(get_border(
-        "[t]ypes",
-        app_state.focus == app_state::AppFocus::DiagnosticTypes,
-    ));
-    frame.render_stateful_widget(
-        widget,
-        right_upper_pane,
-        &mut app_state.diagnostic_types.state,
-    );
-
-    let widget = app_state.diagnostics.widget().block(
+    let widget = app_state.relations.widget().block(
         get_border(
-            "[d]iagnostics",
-            app_state.focus == app_state::AppFocus::Diagnostics,
+            "[r]elations",
+            app_state.focus == app_state::AppFocus::Relations,
         )
         .title(
-            Title::from(" [left] - [right] ")
+            Title::from(" [enter] select ")
                 .alignment(Alignment::Right)
                 .position(block::Position::Bottom),
         ),
     );
-    frame.render_stateful_widget(widget, right_lower_pane, &mut app_state.diagnostics.state);
+    frame.render_stateful_widget(widget, right_upper_pane, &mut app_state.relations.state);
+
+    let widget = app_state.tuples.widget().block(
+        get_border("[t]uples", app_state.focus == app_state::AppFocus::Tuples).title(
+            Title::from(" [left] previous - [right] next - [enter] select ")
+                .alignment(Alignment::Right)
+                .position(block::Position::Bottom),
+        ),
+    );
+    frame.render_stateful_widget(widget, right_lower_pane, &mut app_state.tuples.state);
 
     if app_state.focus == app_state::AppFocus::FilePicker {
         let popup_area = centered_rect(40, 40, area);
@@ -89,15 +88,15 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         );
     }
 
-    let diags = if app_state.sv.content.is_some() {
-        app_state.get_current_diags()
+    let tuples = if app_state.sv.content.is_some() {
+        app_state.get_current_tuples()
     } else {
         vec![]
     };
 
     frame.render_widget(
         Paragraph::new(
-            diags
+            tuples
                 .iter()
                 .map(|d| {
                     format!(
@@ -116,7 +115,7 @@ pub fn render(frame: &mut Frame, app_state: &mut app_state::AppState) {
         .wrap(Wrap { trim: false })
         .block(
             get_border("information", false).title(
-                Title::from(" [tab] cycle focus - [f] file picker ")
+                Title::from(" [tab] cycle focus - [f] file picker - [q] exit ")
                     .alignment(Alignment::Right)
                     .position(block::Position::Bottom),
             ),

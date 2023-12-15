@@ -1,11 +1,11 @@
 #[derive(Debug, Clone)]
-pub struct RawDiagnostic {
+pub struct RawAnalysis {
     pub name: String,
     pub nodes: Vec<usize>,
     pub rest: String,
 }
 
-impl RawDiagnostic {
+impl RawAnalysis {
     pub fn new(fields_with_nodes: &[usize], name: &str, s: &str) -> Self {
         let splt = s.split(',');
         let mut nodes = vec![];

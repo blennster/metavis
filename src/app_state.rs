@@ -1,13 +1,13 @@
 use crate::{
     list::{self, List},
-    parsers::{Diagnostic, DiagnosticType, MetaInfo},
+    parsers::{self, MetaInfo, Relation},
     source_view::SourceView,
 };
 
 #[derive(PartialEq)]
 pub enum AppFocus {
-    DiagnosticTypes,
-    Diagnostics,
+    Relations,
+    Tuples,
     Source,
     FilePicker,
     LinePicker,
@@ -16,18 +16,18 @@ pub enum AppFocus {
 impl AppFocus {
     pub fn next(&self) -> AppFocus {
         match self {
-            AppFocus::Diagnostics => AppFocus::Source,
-            AppFocus::Source => AppFocus::DiagnosticTypes,
-            AppFocus::DiagnosticTypes => AppFocus::Diagnostics,
+            AppFocus::Tuples => AppFocus::Source,
+            AppFocus::Source => AppFocus::Relations,
+            AppFocus::Relations => AppFocus::Tuples,
             _ => panic!("invalid call to next"),
         }
     }
 
     pub fn prev(&self) -> AppFocus {
         match self {
-            AppFocus::Diagnostics => AppFocus::DiagnosticTypes,
-            AppFocus::Source => AppFocus::Diagnostics,
-            AppFocus::DiagnosticTypes => AppFocus::Source,
+            AppFocus::Tuples => AppFocus::Relations,
+            AppFocus::Source => AppFocus::Tuples,
+            AppFocus::Relations => AppFocus::Source,
             _ => panic!("invalid call to next"),
         }
     }
@@ -35,9 +35,9 @@ impl AppFocus {
 
 pub struct AppState {
     pub metainfo: MetaInfo,
-    pub diagnostics: List<Diagnostic>,
+    pub tuples: List<parsers::Tuple>,
     pub files: List<String>,
-    pub diagnostic_types: List<DiagnosticType>,
+    pub relations: List<parsers::Relation>,
     pub should_quit: bool,
     pub focus: AppFocus,
     pub sv: SourceView,
@@ -47,24 +47,24 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(metainfo: MetaInfo, files: List<String>) -> Self {
-        let mut diagnostic_types = metainfo
-            .diagnostics
+        let mut relation_names = metainfo
+            .analyses
             .iter()
             .map(|d| d.name.clone())
             .collect::<Vec<_>>();
-        diagnostic_types.dedup();
-        let diagnostic_types = diagnostic_types
+        relation_names.dedup();
+        let relations = relation_names
             .into_iter()
-            .map(|s| DiagnosticType::new(s))
+            .map(|s| Relation::new(s))
             .collect::<Vec<_>>();
 
         Self {
             metainfo,
-            diagnostic_types: List::new(diagnostic_types),
-            diagnostics: List::new(vec![]),
+            relations: List::new(relations),
+            tuples: List::new(vec![]),
             files,
             should_quit: false,
-            focus: AppFocus::DiagnosticTypes,
+            focus: AppFocus::Relations,
             sv: SourceView::new(),
             current_nodes: vec![],
             input_buffer: String::new(),
@@ -101,22 +101,22 @@ impl AppState {
     pub fn mark_nodes_under_cursor(&mut self) {
         let (col, row) = self.sv.get_cursor();
         self.current_nodes = self.nodes_at(row.into(), col.into());
-        self.diagnostics
+        self.tuples
             .mark(|d| d.nodes.iter().any(|n| self.current_nodes.contains(n)));
     }
 
-    pub fn get_current_diags(&self) -> Vec<Diagnostic> {
-        self.metainfo.get_diags(&self.current_nodes)
+    pub fn get_current_tuples(&self) -> Vec<parsers::Tuple> {
+        self.metainfo.get_analyses(&self.current_nodes)
     }
 
-    pub fn get_diags_for_category(&mut self, category: &str) {
-        let diags = self.metainfo.get_diags_for_category(category);
+    pub fn get_tuples_for_relation(&mut self, relation: &str) {
+        let tuples = self.metainfo.get_tuples_for_relation(relation);
         let mut l = vec![];
-        for d in &diags {
+        for d in &tuples {
             l.push(d.clone());
         }
-        let diagnostics = list::List::new(l);
-        self.diagnostics = diagnostics;
+        let tuples = list::List::new(l);
+        self.tuples = tuples;
     }
 
     /// Load a file from the project
@@ -131,11 +131,11 @@ impl AppState {
     }
 
     pub fn update_view(&mut self) {
-        if self.diagnostics.selected().is_none() {
+        if self.tuples.selected().is_none() {
             return;
         }
-        let diag = self.diagnostics.selected().unwrap();
-        let loc = diag.current().unwrap();
+        let tuples = self.tuples.selected().unwrap();
+        let loc = tuples.current().unwrap();
 
         if self.sv.name != loc.source_file {
             let mut sv = SourceView::new();
@@ -149,14 +149,14 @@ impl AppState {
         }
 
         let sv = &mut self.sv;
-        sv.highlights = diag.locs.clone();
+        sv.highlights = tuples.locs.clone();
         self.scroll_into_view();
         let (col, row) = self.sv.get_cursor();
         self.current_nodes = self.nodes_at(row.into(), col.into());
     }
 
     pub fn scroll_into_view(&mut self) {
-        let selected = &self.diagnostics.selected().unwrap();
+        let selected = &self.tuples.selected().unwrap();
         self.sv.highlights = selected.locs.clone();
         let current = selected.current().unwrap();
         let target = ((current.start_col) as u16, (current.start_line - 1) as u16);
