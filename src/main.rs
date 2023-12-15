@@ -29,6 +29,19 @@ fn make_app_state(source_dir: &str) -> anyhow::Result<app_state::AppState> {
     Ok(app_state)
 }
 
+fn print_usage() {
+    println!(
+        "Usage: {} <root>",
+        std::env::current_exe()
+            .unwrap()
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+    );
+    println!("  <root>    The directory where debug.json resides (with source files in the same directory)");
+}
+
 fn main() -> anyhow::Result<()> {
     coredump::register_panic_handler().unwrap();
     initialize_panic_handler();
@@ -36,11 +49,19 @@ fn main() -> anyhow::Result<()> {
     let mut args = std::env::args();
     args.next();
     let root = match args.next() {
-        Some(root) => root,
+        Some(arg) => {
+            if arg == "--help" || arg == "-h" {
+                print_usage();
+                return Ok(());
+            }
+            arg
+        }
         None => {
-            // Panic if not in debug, otherwise fallback to example_data
             #[cfg(not(debug_assertions))]
-            panic!("Please specify the root directory of the project");
+            {
+                print_usage();
+                return Ok(());
+            }
             "./example_data".to_string()
         }
     };
