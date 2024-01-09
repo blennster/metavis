@@ -8,4 +8,3 @@ pub type Loc = loc_file::Loc;
 pub type Tuple = analysis::Tuple;
 pub type Relation = analysis::Relation;
 pub type MetaInfo = metainfo::MetaInfo;
-pub type SourceFile = lib::SourceFile;

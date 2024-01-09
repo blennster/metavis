@@ -37,9 +37,7 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
                 }
             }
             KeyCode::Esc => {
-                if app_state.focus == AppFocus::FilePicker {
-                    app_state.focus = AppFocus::Source;
-                } else if app_state.focus == AppFocus::LinePicker {
+                if app_state.focus == AppFocus::FilePicker || app_state.focus == AppFocus::LinePicker {
                     app_state.focus = AppFocus::Source;
                 } else {
                     app_state.should_quit = true;
@@ -76,16 +74,16 @@ pub fn handle_events(app_state: &mut crate::app_state::AppState) -> std::io::Res
 
 fn handle_line_picker_inputs(key: event::KeyEvent, app_state: &mut crate::app_state::AppState) {
     match key.code {
-        KeyCode::Char('0') => app_state.input_buffer.push_str("0"),
-        KeyCode::Char('1') => app_state.input_buffer.push_str("1"),
-        KeyCode::Char('2') => app_state.input_buffer.push_str("2"),
-        KeyCode::Char('3') => app_state.input_buffer.push_str("3"),
-        KeyCode::Char('4') => app_state.input_buffer.push_str("4"),
-        KeyCode::Char('5') => app_state.input_buffer.push_str("5"),
-        KeyCode::Char('6') => app_state.input_buffer.push_str("6"),
-        KeyCode::Char('7') => app_state.input_buffer.push_str("7"),
-        KeyCode::Char('8') => app_state.input_buffer.push_str("8"),
-        KeyCode::Char('9') => app_state.input_buffer.push_str("9"),
+        KeyCode::Char('0') => app_state.input_buffer.push('0'),
+        KeyCode::Char('1') => app_state.input_buffer.push('1'),
+        KeyCode::Char('2') => app_state.input_buffer.push('2'),
+        KeyCode::Char('3') => app_state.input_buffer.push('3'),
+        KeyCode::Char('4') => app_state.input_buffer.push('4'),
+        KeyCode::Char('5') => app_state.input_buffer.push('5'),
+        KeyCode::Char('6') => app_state.input_buffer.push('6'),
+        KeyCode::Char('7') => app_state.input_buffer.push('7'),
+        KeyCode::Char('8') => app_state.input_buffer.push('8'),
+        KeyCode::Char('9') => app_state.input_buffer.push('9'),
         KeyCode::Backspace => {
             app_state.input_buffer.pop();
         }

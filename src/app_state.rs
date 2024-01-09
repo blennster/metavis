@@ -55,7 +55,7 @@ impl AppState {
         relation_names.dedup();
         let relations = relation_names
             .into_iter()
-            .map(|s| Relation::new(s))
+            .map(Relation::new)
             .collect::<Vec<_>>();
 
         Self {
