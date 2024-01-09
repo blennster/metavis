@@ -86,6 +86,9 @@ fn handle_line_picker_inputs(key: event::KeyEvent, app_state: &mut crate::app_st
         KeyCode::Char('7') => app_state.input_buffer.push_str("7"),
         KeyCode::Char('8') => app_state.input_buffer.push_str("8"),
         KeyCode::Char('9') => app_state.input_buffer.push_str("9"),
+        KeyCode::Backspace => {
+            app_state.input_buffer.pop();
+        }
         KeyCode::Enter => {
             let target = app_state.input_buffer.parse::<u16>();
             if let Ok(target) = target {

@@ -120,11 +120,10 @@ impl SourceView {
         p.scroll(self.scroll)
     }
 
-    pub fn move_to(&mut self, target: (u16, u16)) {
+    pub fn move_to(&mut self, mut target: (u16, u16)) {
         if let Some(c) = &self.content {
-            if target.0 <= c.lines().count() as u16 {
-                self.cursor = target;
-            }
+            target.1 = target.1.min(c.lines().count() as u16 - 1);
+            self.cursor = target;
         }
     }
     pub fn move_to_start(&mut self) {
