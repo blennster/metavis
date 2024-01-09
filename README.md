@@ -1,6 +1,5 @@
 # Metavis - A visual debugging tool for MetaDL
 
-
 ## Getting started
 
 Build and run using
@@ -9,21 +8,21 @@ Build and run using
 cargo run
 ```
 
-or 
+or
 
 ```bash
 cargo run -- <root>
 ```
 
-or dowload the latest build from the *actions* tab.
+or dowload the latest build from the _actions_ tab.
 
 **NOTE**: rust in debug mode is much slower than in release mode.
 
 ## Limitations
 
-* `unwrap()` used and therfore crashes are possible
-* Some performance optimizations should be done
-* Limited number of tests
+- `unwrap()` used and therfore crashes are possible
+- Some performance optimizations should be done
+- Limited number of tests
 
 ## Usage
 
@@ -38,10 +37,12 @@ where project is the directory where `debug.json` is present. This assumes that 
 ### Navigation
 
 - Navigate the source and list using vim keybindings (`h`, `j`, `k` and `l`) or arrow keys
-  - Left and right can also be used in the *tuple* window
-- Switching active pane is done with `Tab`
+  - Left and right can also be used in the _tuple_ window
+- Switching active pane is done with `Tab` or `Shift-Tab` or the key in the brackets (`[]`)
 - Opening file selection window is done with `f`
-- Close the program with `q`
+- Close the program with `q` or `ctrl-c`
+- Jump to a line using `:`
+- Select an item in a list using `Enter`
 
 # License
 
